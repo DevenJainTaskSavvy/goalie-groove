@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import GlassCard from '@/components/ui/GlassCard';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { addGoal, calculateMonthlyContribution, formatCurrency, getRemainingMonthlyCapacity } from '@/services/api';
 import { MICRO_GOAL_THRESHOLD } from '@/components/dashboard/goalUtils';
 
@@ -22,6 +23,7 @@ const GoalForm = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [remainingCapacity, setRemainingCapacity] = useState(0);
+  const [autoDebit, setAutoDebit] = useState(false);
   
   // Add goalSize state to track micro vs macro
   const [goalSize, setGoalSize] = useState<'micro' | 'macro'>('micro');
@@ -181,7 +183,8 @@ const GoalForm = () => {
         category: selectedGoalType.category,
         monthlyContribution: calculatedContribution,
         riskLevel: formData.riskLevel as 'conservative' | 'moderate' | 'aggressive',
-        description: formData.description
+        description: formData.description,
+        autoDebit: autoDebit
       };
       
       // Add the goal
@@ -237,6 +240,31 @@ const GoalForm = () => {
               selectedRiskLevel={formData.riskLevel}
               onSelect={handleRiskLevelSelect}
             />
+          </div>
+          
+          <div className="mt-6 flex items-center space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="autoDebit" 
+                      checked={autoDebit}
+                      onCheckedChange={(checked) => setAutoDebit(checked === true)}
+                    />
+                    <label
+                      htmlFor="autoDebit"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Enable Auto-Debit
+                    </label>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="p-2 max-w-xs bg-primary/90 text-primary-foreground">
+                  <p>Never miss a deadline! Stay on top of your financial goals!</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           
           <GoalContributionInfo 
