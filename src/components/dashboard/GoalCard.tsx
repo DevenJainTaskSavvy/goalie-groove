@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import GlassCard from '@/components/ui/GlassCard';
 import { cn } from '@/lib/utils';
-import { Target, TrendingUp, CalendarClock, MoreVertical, Pencil, Trash2, IndianRupee, ArrowLeftRight } from 'lucide-react';
+import { Target, TrendingUp, CalendarClock, MoreVertical, Pencil, Trash2, IndianRupee, ArrowLeftRight, Wallet } from 'lucide-react';
 import { 
   ContextMenu,
   ContextMenuTrigger,
@@ -25,6 +25,8 @@ import { useToast } from '@/hooks/use-toast';
 import DeleteConfirmation from '@/components/dashboard/DeleteConfirmation';
 import { GoalCategory } from '@/types/finance';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface GoalCardProps {
   id: string;
@@ -38,7 +40,9 @@ interface GoalCardProps {
   onEdit: (id: string) => void;
   onFinance?: (goalId: string, goalTitle: string, remainingAmount: number) => void;
   onRebalance?: (goalId: string, goalTitle: string, currentAmountValue: number) => void;
+  onUseEmergencyFund?: (goalId: string, goalTitle: string, amount: number) => void;
   isMicroGoal?: boolean;
+  isMacroGoal?: boolean;
 }
 
 const GoalCard = ({
@@ -53,10 +57,14 @@ const GoalCard = ({
   onEdit,
   onFinance,
   onRebalance,
+  onUseEmergencyFund,
   isMicroGoal = false,
+  isMacroGoal = false,
 }: GoalCardProps) => {
   
   const [showFinanceDialog, setShowFinanceDialog] = useState(false);
+  const [emergencyFundAmount, setEmergencyFundAmount] = useState('');
+  const [showEmergencyFundDialog, setShowEmergencyFundDialog] = useState(false);
   
   const categoryIcons = {
     Retirement: <CalendarClock className="h-5 w-5 text-purple-400" />,
@@ -88,6 +96,17 @@ const GoalCard = ({
   const handleRebalance = () => {
     if (onRebalance) {
       onRebalance(id, title, currentValue);
+    }
+  };
+
+  const handleUseEmergencyFund = () => {
+    if (onUseEmergencyFund && emergencyFundAmount) {
+      const amount = parseFloat(emergencyFundAmount);
+      if (!isNaN(amount) && amount > 0) {
+        onUseEmergencyFund(id, title, amount);
+        setEmergencyFundAmount('');
+        setShowEmergencyFundDialog(false);
+      }
     }
   };
 
@@ -172,7 +191,7 @@ const GoalCard = ({
                         <SheetHeader>
                           <SheetTitle>Re-Balance Your Goal</SheetTitle>
                           <SheetDescription>
-                            Redistribute the funds from "{title}" to one of your other goals.
+                            Redistribute the funds from "{title}" to one of your other micro goals.
                             Available amount: ₹{currentValue.toFixed(2)}
                           </SheetDescription>
                         </SheetHeader>
@@ -186,6 +205,55 @@ const GoalCard = ({
                         </div>
                       </SheetContent>
                     </Sheet>
+                  )}
+                  
+                  {/* Use Emergency Fund button - only for macro goals */}
+                  {isMacroGoal && (
+                    <Dialog 
+                      open={showEmergencyFundDialog} 
+                      onOpenChange={setShowEmergencyFundDialog}
+                    >
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2"
+                          size="sm"
+                        >
+                          <Wallet className="h-4 w-4" />
+                          Use Emergency Fund
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Use Emergency Fund</DialogTitle>
+                          <DialogDescription>
+                            Specify the amount from your emergency fund to contribute towards "{title}".
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="emergencyAmount">Amount to use</Label>
+                            <Input 
+                              id="emergencyAmount"
+                              type="number" 
+                              min="1" 
+                              max={remainingAmount}
+                              value={emergencyFundAmount}
+                              onChange={(e) => setEmergencyFundAmount(e.target.value)}
+                              placeholder="Enter amount"
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setShowEmergencyFundDialog(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleUseEmergencyFund}>
+                            Confirm
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   )}
                 </div>
               )}

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { MICRO_GOAL_THRESHOLD } from '@/components/dashboard/goalUtils';
 
 interface TopGoalsSectionProps {
   goals: Goal[];
@@ -29,7 +30,6 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
   const [filteredGoals, setFilteredGoals] = useState<Goal[]>([]);
   const [sourceGoal, setSourceGoal] = useState<Goal | null>(null);
   const [targetGoalId, setTargetGoalId] = useState<string>('');
-  const [amountToRebalance, setAmountToRebalance] = useState<number>(0);
   const [showRebalanceDialog, setShowRebalanceDialog] = useState(false);
   const [rebalanceAmount, setRebalanceAmount] = useState<string>('');
   const [maxRebalanceAmount, setMaxRebalanceAmount] = useState<number>(0);
@@ -174,6 +174,50 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
     }
   };
 
+  const handleUseEmergencyFund = async (goalId: string, goalTitle: string, amount: number) => {
+    try {
+      // Get the original goal to reference its data
+      const originalGoal = goals.find(goal => goal.id === goalId);
+      
+      if (!originalGoal) {
+        toast({
+          title: "Error",
+          description: "Goal not found",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Calculate new current amount
+      const newCurrentAmount = originalGoal.currentAmount + amount;
+      const newProgress = Math.min(100, Math.round((newCurrentAmount / originalGoal.targetAmount) * 100));
+      
+      // Update the goal with the emergency fund contribution
+      await updateGoal({
+        id: goalId,
+        currentAmount: newCurrentAmount,
+        progress: newProgress
+      });
+      
+      // Show success message
+      toast({
+        title: "Emergency Fund Used",
+        description: `₹${amount.toFixed(2)} from your emergency fund has been added to "${goalTitle}".`,
+      });
+      
+      // Refresh the page to show the updated goals
+      window.location.reload();
+      
+    } catch (error) {
+      console.error("Error using emergency fund:", error);
+      toast({
+        title: "Error",
+        description: "Failed to use emergency fund. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <>
       <div className="mb-6 flex justify-between items-center">
@@ -193,23 +237,30 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
         </GlassCard>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGoals.map((goal) => (
-            <GoalCard 
-              key={goal.id}
-              id={goal.id}
-              title={goal.title}
-              targetAmount={formatCurrency(goal.targetAmount)}
-              currentAmount={formatCurrency(goal.currentAmount)}
-              timeline={`${goal.timeline} years`}
-              progress={goal.progress}
-              category={goal.category}
-              onDelete={onDeleteGoal}
-              onEdit={onEditGoal}
-              onFinance={handleFinanceGoal}
-              onRebalance={initiateRebalance}
-              isMicroGoal={goal.timeline <= 2} // Consider goals with timeline <= 2 years as micro goals
-            />
-          ))}
+          {filteredGoals.map((goal) => {
+            const isMicroGoal = goal.targetAmount < MICRO_GOAL_THRESHOLD;
+            const isMacroGoal = !isMicroGoal;
+            
+            return (
+              <GoalCard 
+                key={goal.id}
+                id={goal.id}
+                title={goal.title}
+                targetAmount={formatCurrency(goal.targetAmount)}
+                currentAmount={formatCurrency(goal.currentAmount)}
+                timeline={`${goal.timeline} years`}
+                progress={goal.progress}
+                category={goal.category}
+                onDelete={onDeleteGoal}
+                onEdit={onEditGoal}
+                onFinance={handleFinanceGoal}
+                onRebalance={isMicroGoal ? initiateRebalance : undefined}
+                onUseEmergencyFund={isMacroGoal ? handleUseEmergencyFund : undefined}
+                isMicroGoal={isMicroGoal}
+                isMacroGoal={isMacroGoal}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -219,7 +270,7 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
           <DialogHeader>
             <DialogTitle>Rebalance Your Goals</DialogTitle>
             <DialogDescription>
-              Move funds from "{sourceGoal?.title}" to another goal. 
+              Move funds from "{sourceGoal?.title}" to another micro goal. 
               Maximum amount available: ₹{maxRebalanceAmount.toFixed(2)}
             </DialogDescription>
           </DialogHeader>
@@ -243,6 +294,8 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
               <RadioGroup value={targetGoalId} onValueChange={setTargetGoalId}>
                 {filteredGoals
                   .filter(goal => goal.id !== sourceGoal?.id)
+                  // Only show other micro goals for rebalancing
+                  .filter(goal => goal.targetAmount < MICRO_GOAL_THRESHOLD)
                   .map(goal => (
                     <div key={goal.id} className="flex items-center space-x-2 border p-2 rounded my-1">
                       <RadioGroupItem value={goal.id} id={goal.id} />
