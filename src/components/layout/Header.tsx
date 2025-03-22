@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Home, LineChart, Target, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Header = () => {
   const location = useLocation();
@@ -47,28 +48,41 @@ const Header = () => {
           ))}
         </nav>
         
-        <div className="md:hidden flex items-center space-x-6">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  'text-sm relative p-1.5 transition-colors',
-                  {
-                    'text-primary': isActive(item.path),
-                    'text-muted-foreground': !isActive(item.path),
-                  }
-                )}
-              >
-                <Icon size={24} className="smooth-transition" />
-                {isActive(item.path) && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full animate-scale-in" />
-                )}
-              </Link>
-            );
-          })}
+        <div className="flex items-center space-x-3">
+          <Link to="/signup">
+            <Button variant="outline" size="sm" className="hidden md:inline-flex">
+              Login
+            </Button>
+          </Link>
+          <Link to="/signup">
+            <Button size="sm" className="hidden md:inline-flex">
+              Sign Up
+            </Button>
+          </Link>
+          
+          <div className="md:hidden flex items-center space-x-6">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    'text-sm relative p-1.5 transition-colors',
+                    {
+                      'text-primary': isActive(item.path),
+                      'text-muted-foreground': !isActive(item.path),
+                    }
+                  )}
+                >
+                  <Icon size={24} className="smooth-transition" />
+                  {isActive(item.path) && (
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary rounded-full animate-scale-in" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </header>

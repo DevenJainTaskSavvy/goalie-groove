@@ -27,6 +27,7 @@ const App = () => (
           <Route path="/goals" element={<Goals />} />
           <Route path="/goals/new" element={<NewGoal />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/profile" element={<Onboarding />} /> {/* Using Onboarding as a temporary profile page */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

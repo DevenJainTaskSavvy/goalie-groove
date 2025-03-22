@@ -1,45 +1,41 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import AnimatedText from '@/components/ui/AnimatedText';
 import GlassCard from '@/components/ui/GlassCard';
-import { ArrowRight, BarChart3, CheckCircle, Sparkles, X } from 'lucide-react';
+import { ArrowRight, BarChart3, PieChart, LineChart, TrendingUp, Rocket, Shield } from 'lucide-react';
 
 const Index = () => {
-  const navigate = useNavigate();
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [showError, setShowError] = useState(false);
-  
-  const handleGetStarted = () => {
-    if (phoneNumber.match(/^\+?\d{10,15}$/)) {
-      navigate('/signup');
-    } else {
-      setShowError(true);
-    }
-  };
-  
   const features = [
     {
+      icon: <PieChart className="h-10 w-10 text-primary mb-4" />,
+      title: "Smart Portfolio Management",
+      description: "Track and visualize your investments across different asset classes"
+    },
+    {
+      icon: <LineChart className="h-10 w-10 text-primary mb-4" />,
       title: "Goal-Based Planning",
-      description: "Customize your financial journey with specific goals and timelines"
+      description: "Set financial goals with personalized timelines and track your progress"
     },
     {
-      title: "Smart Investment Breakdown",
-      description: "Visualize how your investments are allocated across goals"
-    },
-    {
-      title: "Personalized Recommendations",
-      description: "Get tailored advice based on your risk profile and timeline"
+      icon: <TrendingUp className="h-10 w-10 text-primary mb-4" />,
+      title: "Performance Analytics",
+      description: "Detailed insights and analytics to optimize your investment strategies"
     }
   ];
   
-  const investmentData = [
-    { name: 'Mutual funds', value: '₹52.5L' },
-    { name: 'Stocks', value: '₹5.5L' },
-    { name: 'Banks', value: '₹10.4L' },
+  const benefits = [
+    {
+      icon: <Shield />,
+      title: "Secure & Private",
+      description: "Bank-level encryption to protect your data"
+    },
+    {
+      icon: <Rocket />,
+      title: "Boost Returns",
+      description: "Smart recommendations to maximize your investment returns"
+    }
   ];
   
   return (
@@ -50,112 +46,147 @@ const Index = () => {
         </div>
       </header>
       
-      <main className="flex-1 container mx-auto px-4 flex flex-col items-center justify-center py-10">
+      {/* Hero section */}
+      <section className="flex-1 container mx-auto px-4 flex flex-col items-center justify-center py-12 md:py-20">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <AnimatedText 
-            text="Monitor all your investments in one place" 
+            text="Reach Financial Freedom With Smart Investment Planning" 
             element="h1"
-            className="text-4xl md:text-5xl font-bold mb-6 leading-tight"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
             variant="gradient"
           />
           <AnimatedText 
-            text="Set financial goals, track your progress, and get personalized recommendations to achieve financial freedom." 
+            text="Set goals, track your investments, and get personalized recommendations to build wealth and secure your future." 
             element="p"
             className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
             delay={300}
           />
-        </div>
-        
-        <div className="w-full max-w-sm mx-auto mb-16">
-          <GlassCard className="overflow-visible">
-            <div className="flex flex-col space-y-6">
-              <div>
-                <AnimatedText 
-                  text="Your Holdings" 
-                  element="p"
-                  className="text-muted-foreground text-sm mb-1"
-                />
-                <div className="flex items-baseline">
-                  <AnimatedText 
-                    text="₹68.4 L" 
-                    element="h2"
-                    className="text-3xl font-bold"
-                  />
-                  <span className="ml-2 text-sm text-emerald-500">+₹20.06L</span>
-                </div>
-              </div>
-              
-              <div className="space-y-3 animate-fade-in" style={{ animationDelay: '400ms' }}>
-                {investmentData.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 rounded-xl bg-white/5">
-                    <div className="flex items-center">
-                      <BarChart3 className="h-5 w-5 mr-3 text-muted-foreground" />
-                      <span>{item.name}</span>
-                    </div>
-                    <span className="font-medium">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="pt-4 space-y-4">
-                <div className="relative animate-fade-in" style={{ animationDelay: '600ms' }}>
-                  <Input
-                    type="tel"
-                    placeholder="Enter Phone Number"
-                    value={phoneNumber}
-                    onChange={(e) => {
-                      setPhoneNumber(e.target.value);
-                      setShowError(false);
-                    }}
-                    className={`bg-background/50 h-12 pl-4 pr-10 ${showError ? 'border-rose-500' : ''}`}
-                  />
-                  {phoneNumber && (
-                    <button 
-                      onClick={() => setPhoneNumber('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-                
-                {showError && (
-                  <p className="text-xs text-rose-500">Please enter a valid phone number</p>
-                )}
-                
-                <Button 
-                  className="w-full h-12 animate-fade-in group"
-                  style={{ animationDelay: '800ms' }}
-                  onClick={handleGetStarted}
-                >
-                  Get Started
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </div>
-            </div>
-          </GlassCard>
           
-          <div className="text-center mt-4 animate-fade-in" style={{ animationDelay: '900ms' }}>
-            <Link to="/signup" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
-              Already have an account? Log in
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 animate-fade-in" style={{ animationDelay: '600ms' }}>
+            <Link to="/signup">
+              <Button size="lg" className="w-full sm:w-auto group">
+                Get Started
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                View Demo
+              </Button>
             </Link>
           </div>
         </div>
         
-        <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          {features.map((feature, index) => (
-            <GlassCard key={index} className="animate-fade-in" style={{ animationDelay: `${1000 + index * 200}ms` }}>
-              <div className="flex flex-col h-full">
-                <div className="mb-4">
-                  <CheckCircle className="h-6 w-6 text-primary mb-3" />
-                  <h3 className="text-lg font-medium mb-2">{feature.title}</h3>
+        {/* Hero Image/Illustration */}
+        <div className="w-full max-w-4xl mx-auto relative mt-8 animate-scale-in">
+          <GlassCard className="p-6 md:p-8 overflow-visible">
+            <div className="bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-xl p-6 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="animate-fade-in" style={{ animationDelay: '800ms' }}>
+                  <div className="flex flex-col items-center text-center p-4">
+                    <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                      <BarChart3 className="h-7 w-7 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-medium mb-2">₹23.4L</h3>
+                    <p className="text-sm text-muted-foreground">Total Invested</p>
+                  </div>
                 </div>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
+                
+                <div className="animate-fade-in" style={{ animationDelay: '900ms' }}>
+                  <div className="flex flex-col items-center text-center p-4">
+                    <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
+                      <TrendingUp className="h-7 w-7 text-emerald-500" />
+                    </div>
+                    <h3 className="text-xl font-medium mb-2">18.5%</h3>
+                    <p className="text-sm text-muted-foreground">Annual Returns</p>
+                  </div>
+                </div>
+                
+                <div className="animate-fade-in" style={{ animationDelay: '1000ms' }}>
+                  <div className="flex flex-col items-center text-center p-4">
+                    <div className="w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
+                      <PieChart className="h-7 w-7 text-purple-500" />
+                    </div>
+                    <h3 className="text-xl font-medium mb-2">5</h3>
+                    <p className="text-sm text-muted-foreground">Active Goals</p>
+                  </div>
+                </div>
               </div>
-            </GlassCard>
-          ))}
+            </div>
+          </GlassCard>
         </div>
-      </main>
+      </section>
+      
+      {/* Features Section */}
+      <section className="py-16 md:py-24 bg-black/20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <AnimatedText 
+              text="Smart Tools for Your Financial Journey" 
+              element="h2"
+              className="text-3xl md:text-4xl font-bold mb-4"
+              variant="gradient"
+              delay={300}
+            />
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '400ms' }}>
+              Everything you need to build wealth and achieve your financial goals
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {features.map((feature, index) => (
+              <GlassCard key={index} className="h-full animate-fade-in" style={{ animationDelay: `${500 + index * 200}ms` }}>
+                <div className="p-6 md:p-8 flex flex-col h-full">
+                  <div className="mb-4">
+                    {feature.icon}
+                    <h3 className="text-xl font-medium mb-2">{feature.title}</h3>
+                  </div>
+                  <p className="text-muted-foreground">{feature.description}</p>
+                </div>
+              </GlassCard>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {benefits.map((benefit, index) => (
+              <div key={index} className="flex items-start space-x-5 animate-fade-in" style={{ animationDelay: `${900 + index * 200}ms` }}>
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  {benefit.icon}
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">{benefit.title}</h3>
+                  <p className="text-muted-foreground">{benefit.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* CTA Section */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <GlassCard className="overflow-visible">
+            <div className="p-8 md:p-12 text-center">
+              <AnimatedText 
+                text="Start Your Financial Journey Today" 
+                element="h2"
+                className="text-3xl md:text-4xl font-bold mb-6"
+                variant="gradient"
+              />
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                Join thousands of users who are already growing their wealth with GrowVest
+              </p>
+              <Link to="/signup" className="animate-fade-in" style={{ animationDelay: '400ms' }}>
+                <Button size="lg" className="group">
+                  Create Your Account
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+            </div>
+          </GlassCard>
+        </div>
+      </section>
       
       <footer className="py-8 border-t border-white/5">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
