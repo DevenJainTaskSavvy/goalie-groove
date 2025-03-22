@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
@@ -8,12 +7,16 @@ import InvestmentBreakdown from '@/components/dashboard/InvestmentBreakdown';
 import GoalCard from '@/components/dashboard/GoalCard';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Award, Calendar, Sparkles, Loader2 } from 'lucide-react';
-import { getUserProfile, getGoals, formatCurrency } from '@/services/api';
+import { getUserProfile, getGoals, formatCurrency, deleteGoal } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
+import { Goal } from '@/types/finance';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
-  const [goals, setGoals] = useState<any[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Default investment data (can be enhanced with real data in future)
   const [investmentData, setInvestmentData] = useState([
@@ -49,6 +52,28 @@ const Dashboard = () => {
   // Calculate total investments (for demo purposes)
   const totalInvestment = investmentData.reduce((sum, item) => sum + item.value, 0);
   const totalDisplayValue = formatCurrency(totalInvestment * 100000); // Convert lakhs to rupees
+  
+  const handleDeleteGoal = async (id: string) => {
+    try {
+      await deleteGoal(id);
+      setGoals(prevGoals => prevGoals.filter(goal => goal.id !== id));
+      toast({
+        title: "Goal deleted",
+        description: "The goal has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error('Failed to delete goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the goal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleEditGoal = (id: string) => {
+    navigate(`/goals?edit=${id}`);
+  };
   
   if (loading) {
     return (
@@ -153,12 +178,15 @@ const Dashboard = () => {
             {goals.map((goal) => (
               <GoalCard 
                 key={goal.id}
+                id={goal.id}
                 title={goal.title}
                 targetAmount={formatCurrency(goal.targetAmount)}
                 currentAmount={formatCurrency(goal.currentAmount)}
                 timeline={`${goal.timeline} years`}
                 progress={goal.progress}
                 category={goal.category}
+                onDelete={handleDeleteGoal}
+                onEdit={handleEditGoal}
               />
             ))}
           </div>

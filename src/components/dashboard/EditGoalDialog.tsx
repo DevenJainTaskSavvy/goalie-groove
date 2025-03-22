@@ -88,7 +88,7 @@ const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, onSave, onCancel 
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleRiskLevelSelect = (riskLevel: string) => {
+  const handleRiskLevelSelect = (riskLevel: 'conservative' | 'moderate' | 'aggressive') => {
     setFormData(prev => ({ ...prev, riskLevel }));
   };
   
