@@ -13,6 +13,7 @@ import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { deleteGoal } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import DeleteConfirmation from '@/components/dashboard/DeleteConfirmation';
+import { GoalCategory } from '@/types/finance';
 
 interface GoalCardProps {
   id: string;
@@ -21,7 +22,7 @@ interface GoalCardProps {
   currentAmount: string;
   timeline: string;
   progress: number;
-  category: 'Retirement' | 'Education' | 'Housing' | 'Vehicle' | 'Travel' | 'Other';
+  category: GoalCategory;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
 }
@@ -44,6 +45,8 @@ const GoalCard = ({
     Housing: <Target className="h-5 w-5 text-emerald-400" />,
     Vehicle: <Target className="h-5 w-5 text-amber-400" />,
     Travel: <Target className="h-5 w-5 text-rose-400" />,
+    Electronics: <Target className="h-5 w-5 text-indigo-400" />,
+    Accessories: <Target className="h-5 w-5 text-pink-400" />,
     Other: <Target className="h-5 w-5 text-gray-400" />,
   };
 
