@@ -14,8 +14,8 @@ const Index = () => {
   const [showError, setShowError] = useState(false);
   
   const handleGetStarted = () => {
-    if (phoneNumber.match(/^\+91\d{10}$/)) {
-      navigate('/onboarding');
+    if (phoneNumber.match(/^\+?\d{10,15}$/)) {
+      navigate('/signup');
     } else {
       setShowError(true);
     }
@@ -46,7 +46,7 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="p-6">
         <div className="container mx-auto">
-          <h1 className="text-2xl font-bold text-gradient">DEZERV</h1>
+          <h1 className="text-2xl font-bold text-gradient">GROWVEST</h1>
         </div>
       </header>
       
@@ -120,7 +120,7 @@ const Index = () => {
                 </div>
                 
                 {showError && (
-                  <p className="text-xs text-rose-500">Please enter a valid phone number (+91XXXXXXXXXX)</p>
+                  <p className="text-xs text-rose-500">Please enter a valid phone number</p>
                 )}
                 
                 <Button 
@@ -136,8 +136,8 @@ const Index = () => {
           </GlassCard>
           
           <div className="text-center mt-4 animate-fade-in" style={{ animationDelay: '900ms' }}>
-            <Link to="/how-it-works" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
-              See how it works
+            <Link to="/signup" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">
+              Already have an account? Log in
             </Link>
           </div>
         </div>
@@ -159,7 +159,7 @@ const Index = () => {
       
       <footer className="py-8 border-t border-white/5">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2023 DEZERV. All rights reserved.</p>
+          <p>© 2023 GROWVEST. All rights reserved.</p>
         </div>
       </footer>
     </div>
