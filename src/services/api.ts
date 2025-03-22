@@ -140,6 +140,61 @@ export const addGoal = (goalData: Omit<Goal, 'id' | 'progress'>): Promise<Goal> 
   });
 };
 
+// Edit existing goal
+export const updateGoal = (goalData: Partial<Goal>): Promise<Goal> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const userProfile = await getUserProfile();
+      
+      if (!userProfile) {
+        reject(new Error("User profile not found"));
+        return;
+      }
+      
+      // Find the goal to update
+      const goalIndex = goals.findIndex(goal => goal.id === goalData.id);
+      
+      if (goalIndex === -1) {
+        reject(new Error("Goal not found"));
+        return;
+      }
+      
+      // Calculate if the user has enough monthly investment capacity
+      if (goalData.monthlyContribution) {
+        const oldContribution = goals[goalIndex].monthlyContribution;
+        const contributionDifference = goalData.monthlyContribution - oldContribution;
+        
+        // Calculate total without this goal
+        const totalOtherGoals = goals.reduce((sum, goal) => {
+          return goal.id === goalData.id ? sum : sum + goal.monthlyContribution;
+        }, 0);
+        
+        if (totalOtherGoals + goalData.monthlyContribution > userProfile.monthlyInvestmentCapacity) {
+          reject(new Error("Updating this goal would exceed your monthly investment capacity"));
+          return;
+        }
+      }
+      
+      // Update the goal in memory
+      const updatedGoal = { ...goals[goalIndex], ...goalData };
+      goals[goalIndex] = updatedGoal;
+      
+      // Update in localStorage for persistence
+      const storedGoals = JSON.parse(localStorage.getItem('growvest_goals') || '[]');
+      const storedGoalIndex = storedGoals.findIndex((g: Goal) => g.id === goalData.id);
+      
+      if (storedGoalIndex !== -1) {
+        storedGoals[storedGoalIndex] = updatedGoal;
+        localStorage.setItem('growvest_goals', JSON.stringify(storedGoals));
+      }
+      
+      setTimeout(() => resolve(updatedGoal), 500); // Simulate network delay
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
 // Get all goals
 export const getGoals = (): Promise<Goal[]> => {
   return new Promise((resolve) => {

@@ -7,13 +7,19 @@ import AnimatedText from '@/components/ui/AnimatedText';
 import GoalCard from '@/components/dashboard/GoalCard';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Filter, Loader2 } from 'lucide-react';
-import { GoalCategory } from '@/types/finance';
-import { getGoals, formatCurrency } from '@/services/api';
+import { GoalCategory, Goal } from '@/types/finance';
+import { getGoals, formatCurrency, deleteGoal, updateGoal } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import EditGoalDialog from '@/components/dashboard/EditGoalDialog';
 
 const Goals = () => {
   const [filter, setFilter] = useState<GoalCategory | 'All'>('All');
-  const [goals, setGoals] = useState<any[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const { toast } = useToast();
   
   useEffect(() => {
     const fetchGoals = async () => {
@@ -30,6 +36,59 @@ const Goals = () => {
     
     fetchGoals();
   }, []);
+  
+  const handleDeleteGoal = async (goalId: string) => {
+    try {
+      await deleteGoal(goalId);
+      setGoals(prevGoals => prevGoals.filter(goal => goal.id !== goalId));
+      toast({
+        title: "Goal deleted",
+        description: "The goal has been successfully deleted.",
+      });
+    } catch (error) {
+      console.error('Failed to delete goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the goal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleEditGoal = (goalId: string) => {
+    const goal = goals.find(g => g.id === goalId);
+    if (goal) {
+      setSelectedGoal(goal);
+      setIsEditing(true);
+    }
+  };
+  
+  const handleUpdateGoal = async (updatedGoal: Partial<Goal>) => {
+    try {
+      const updated = await updateGoal(updatedGoal);
+      setGoals(prevGoals => prevGoals.map(goal => 
+        goal.id === updated.id ? updated : goal
+      ));
+      setIsEditing(false);
+      setSelectedGoal(null);
+      toast({
+        title: "Goal updated",
+        description: "The goal has been successfully updated.",
+      });
+    } catch (error) {
+      console.error('Failed to update goal:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update the goal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setSelectedGoal(null);
+  };
   
   const filteredGoals = filter === 'All' 
     ? goals 
@@ -98,17 +157,31 @@ const Goals = () => {
             {filteredGoals.map((goal) => (
               <GoalCard 
                 key={goal.id}
+                id={goal.id}
                 title={goal.title}
                 targetAmount={formatCurrency(goal.targetAmount)}
                 currentAmount={formatCurrency(goal.currentAmount)}
                 timeline={`${goal.timeline} years`}
                 progress={goal.progress}
                 category={goal.category}
+                onDelete={handleDeleteGoal}
+                onEdit={handleEditGoal}
               />
             ))}
           </div>
         )}
       </main>
+      
+      {/* Edit Goal Dialog */}
+      <Dialog open={isEditing} onOpenChange={(open) => !open && handleCancelEdit()}>
+        {selectedGoal && (
+          <EditGoalDialog
+            goal={selectedGoal}
+            onSave={handleUpdateGoal}
+            onCancel={handleCancelEdit}
+          />
+        )}
+      </Dialog>
     </div>
   );
 };

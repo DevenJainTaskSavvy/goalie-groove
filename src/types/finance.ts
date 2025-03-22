@@ -23,4 +23,5 @@ export interface Goal {
   category: GoalCategory;
   monthlyContribution: number;
   riskLevel: 'conservative' | 'moderate' | 'aggressive';
+  description?: string;
 }
