@@ -62,6 +62,37 @@ export const validateGoalForm = (
   }
 };
 
+export const validateInitialInvestment = async (
+  currentAmount: number,
+  initialSavings: number
+): Promise<ValidationResult> => {
+  try {
+    // Get all existing goals to calculate total current amount
+    const goalsString = localStorage.getItem('growvest_goals');
+    const existingGoals = goalsString ? JSON.parse(goalsString) as Goal[] : [];
+    
+    // Calculate the total amount already used across all goals
+    const totalUsed = existingGoals.reduce((sum, goal) => sum + goal.currentAmount, 0);
+    
+    // Check if adding this new amount would exceed initial savings
+    if (totalUsed + currentAmount > initialSavings) {
+      return {
+        isValid: false,
+        errorTitle: "Exceeds Available Savings",
+        errorMessage: `The total principal amount across all goals would exceed your initial savings. You can allocate up to ${initialSavings - totalUsed} more.`
+      };
+    }
+    
+    return { isValid: true };
+  } catch (error) {
+    return {
+      isValid: false,
+      errorTitle: "Error",
+      errorMessage: "Failed to validate against initial savings. Please try again."
+    };
+  }
+};
+
 export const prepareGoalData = (
   formData: {
     id: string;

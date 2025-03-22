@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Goal } from '@/types/finance';
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { formatCurrency, parseCurrency, calculateMonthlyContribution } from '@/services/api';
+import { formatCurrency, parseCurrency, calculateMonthlyContribution, getUserProfile } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import EditGoalFormFields from './EditGoalFormFields';
-import { validateGoalForm, prepareGoalData } from './goalFormValidation';
+import { validateGoalForm, prepareGoalData, validateInitialInvestment } from './goalFormValidation';
 
 interface EditGoalDialogProps {
   goal: Goal;
@@ -67,7 +67,7 @@ const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, onSave, onCancel 
     }));
   };
   
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     try {
       // Validate form data
       const validationResult = validateGoalForm(
@@ -83,6 +83,38 @@ const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, onSave, onCancel 
           variant: "destructive"
         });
         return;
+      }
+      
+      // Get initial savings and validate new current amount
+      const userProfile = await getUserProfile();
+      if (!userProfile) {
+        throw new Error("User profile not found");
+      }
+      
+      // Get all existing goals
+      const goalsString = localStorage.getItem('growvest_goals');
+      const existingGoals = goalsString ? JSON.parse(goalsString) : [];
+      
+      // Calculate the current amount difference
+      const newCurrentAmount = parseCurrency(formData.currentAmount);
+      const currentAmountDifference = newCurrentAmount - goal.currentAmount;
+      
+      // Only need to validate if we're increasing the current amount
+      if (currentAmountDifference > 0) {
+        // Calculate total used excluding the current goal's amount
+        const totalUsedExcludingCurrent = existingGoals.reduce((sum, g) => {
+          return sum + (g.id === goal.id ? 0 : g.currentAmount);
+        }, 0);
+        
+        // Check if the new amount would exceed initial savings
+        if (totalUsedExcludingCurrent + newCurrentAmount > userProfile.savings) {
+          toast({
+            title: "Exceeds Available Savings",
+            description: `The new amount would exceed your initial savings. You can allocate up to ${formatCurrency(userProfile.savings - totalUsedExcludingCurrent)}.`,
+            variant: "destructive"
+          });
+          return;
+        }
       }
       
       // Prepare the goal data

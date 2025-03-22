@@ -2,6 +2,7 @@
 import { Goal } from '@/types/finance';
 import { getUserProfile } from '../userService';
 import { mapToGoal } from './goalMappers';
+import { validateInitialInvestment } from '@/components/dashboard/goalFormValidation';
 
 /**
  * Add a new financial goal
@@ -24,6 +25,12 @@ export const addGoal = async (goalData: Omit<Goal, 'id' | 'progress'>): Promise<
     
     if (currentTotalMonthly + newMonthlyRequired > userProfile.monthlyInvestmentCapacity) {
       throw new Error("Adding this goal would exceed your monthly investment capacity");
+    }
+    
+    // Check if the current amount would exceed initial savings
+    const validationResult = await validateInitialInvestment(goalData.currentAmount, userProfile.savings);
+    if (!validationResult.isValid) {
+      throw new Error(validationResult.errorMessage || "Would exceed initial savings");
     }
     
     const progress = Math.min(100, Math.round((goalData.currentAmount / goalData.targetAmount) * 100));
