@@ -102,8 +102,10 @@ const Index = () => {
                     <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
                       <BarChart3 className="h-7 w-7 text-primary" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2"></h3>
-                    <p className="text-sm text-muted-foreground"></p>
+                    <h3 className="text-xl font-medium mb-2">30+</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Goals Trackable
+                    </p>
                   </div>
                 </div>
 
@@ -115,9 +117,9 @@ const Index = () => {
                     <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
                       <TrendingUp className="h-7 w-7 text-emerald-500" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2"></h3>
+                    <h3 className="text-xl font-medium mb-2">23.4L</h3>
                     <p className="text-sm text-muted-foreground">
-                      Growing User Base
+                      Stocks allocated
                     </p>
                   </div>
                 </div>
