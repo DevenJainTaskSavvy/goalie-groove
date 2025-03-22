@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import AnimatedText from '@/components/ui/AnimatedText';
 import GlassCard from '@/components/ui/GlassCard';
 import PricingSection from '@/components/pricing/PricingSection';
 import Navbar from '@/components/layout/Navbar';
-import { ArrowRight, BarChart3, PieChart, LineChart, TrendingUp, Rocket, Shield } from 'lucide-react';
+import { ArrowRight, BarChart3, PieChart, LineChart, TrendingUp, Rocket, Shield, Check } from 'lucide-react';
 
 const Index = () => {
   const features = [
