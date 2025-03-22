@@ -32,3 +32,12 @@ export const getFilteredGoals = (
     return sortOrder === 'desc' ? bRemaining - aRemaining : aRemaining - bRemaining;
   });
 };
+
+// Get appropriate categories based on goal size
+export const getCategoriesForGoalSize = (goalSize: 'micro' | 'macro'): GoalCategory[] => {
+  if (goalSize === 'micro') {
+    return ['Travel', 'Electronics', 'Accessories', 'Other'];
+  } else {
+    return ['Retirement', 'Education', 'Housing', 'Vehicle', 'Other'];
+  }
+};

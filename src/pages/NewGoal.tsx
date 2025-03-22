@@ -9,15 +9,23 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
-import { Check, Target, CreditCard, Calendar, Info, AlertTriangle } from 'lucide-react';
+import { Check, Target, CreditCard, Calendar, Info, AlertTriangle, Plane, Smartphone, ShoppingBag } from 'lucide-react';
 import { Goal, GoalCategory } from '@/types/finance';
 import { addGoal, calculateMonthlyContribution, formatCurrency, getUserProfile, getRemainingMonthlyCapacity } from '@/services/api';
+import { MICRO_GOAL_THRESHOLD } from '@/components/dashboard/goalUtils';
 
-const GOAL_TYPES = [
+// Goal types based on size
+const MICRO_GOAL_TYPES = [
+  { id: 'travel', label: 'Travel', icon: Plane, category: 'Travel' as GoalCategory },
+  { id: 'electronics', label: 'Electronics', icon: Smartphone, category: 'Electronics' as GoalCategory },
+  { id: 'accessories', label: 'Accessories', icon: ShoppingBag, category: 'Accessories' as GoalCategory },
+  { id: 'other', label: 'Other', icon: Target, category: 'Other' as GoalCategory },
+];
+
+const MACRO_GOAL_TYPES = [
   { id: 'retirement', label: 'Retirement', icon: Calendar, category: 'Retirement' as GoalCategory },
   { id: 'education', label: 'Education', icon: Target, category: 'Education' as GoalCategory },
   { id: 'housing', label: 'Housing', icon: CreditCard, category: 'Housing' as GoalCategory },
-  { id: 'travel', label: 'Travel', icon: Target, category: 'Travel' as GoalCategory },
   { id: 'vehicle', label: 'Vehicle', icon: Target, category: 'Vehicle' as GoalCategory },
   { id: 'other', label: 'Other', icon: Target, category: 'Other' as GoalCategory },
 ];
@@ -33,6 +41,9 @@ const NewGoal = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [remainingCapacity, setRemainingCapacity] = useState(0);
+  
+  // Add goalSize state to track micro vs macro
+  const [goalSize, setGoalSize] = useState<'micro' | 'macro'>('micro');
   
   const [formData, setFormData] = useState({
     goalType: '',
@@ -73,6 +84,13 @@ const NewGoal = () => {
         const currentAmountNum = Number(formData.currentAmount);
         const timelineYearsNum = Number(formData.timeline);
         
+        // Update goal size based on target amount
+        if (targetAmountNum < MICRO_GOAL_THRESHOLD) {
+          setGoalSize('micro');
+        } else {
+          setGoalSize('macro');
+        }
+        
         if (targetAmountNum && currentAmountNum !== undefined && timelineYearsNum) {
           const monthlyAmount = calculateMonthlyContribution(
             targetAmountNum,
@@ -93,6 +111,27 @@ const NewGoal = () => {
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    
+    // If changing target amount, check if we need to switch goal size
+    if (name === 'targetAmount') {
+      const numValue = Number(value);
+      if (!isNaN(numValue)) {
+        if (numValue < MICRO_GOAL_THRESHOLD) {
+          setGoalSize('micro');
+          // Clear goal type if switching sizes
+          if (goalSize !== 'micro') {
+            setFormData(prev => ({ ...prev, goalType: '' }));
+          }
+        } else {
+          setGoalSize('macro');
+          // Clear goal type if switching sizes
+          if (goalSize !== 'macro') {
+            setFormData(prev => ({ ...prev, goalType: '' }));
+          }
+        }
+      }
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
@@ -140,7 +179,9 @@ const NewGoal = () => {
       setIsSubmitting(true);
       
       // Find the category based on the selected goal type
-      const selectedGoalType = GOAL_TYPES.find(type => type.id === formData.goalType);
+      const goalTypes = goalSize === 'micro' ? MICRO_GOAL_TYPES : MACRO_GOAL_TYPES;
+      const selectedGoalType = goalTypes.find(type => type.id === formData.goalType);
+      
       if (!selectedGoalType) {
         throw new Error("Invalid goal type");
       }
@@ -179,6 +220,9 @@ const NewGoal = () => {
     }
   };
   
+  // Get the current goal types based on the goal size
+  const currentGoalTypes = goalSize === 'micro' ? MICRO_GOAL_TYPES : MACRO_GOAL_TYPES;
+  
   return (
     <div className="min-h-screen bg-background pt-16">
       <Header />
@@ -187,13 +231,15 @@ const NewGoal = () => {
         <div className="max-w-2xl mx-auto">
           <div className="mb-8">
             <AnimatedText 
-              text="Create a New Financial Goal" 
+              text={`Create a New ${goalSize === 'micro' ? 'Micro' : 'Macro'} Goal`}
               element="h1"
               className="text-3xl font-bold mb-2"
               variant="gradient"
             />
             <p className="text-muted-foreground">
-              Define your financial goals to track progress and get personalized recommendations.
+              {goalSize === 'micro' 
+                ? 'Define smaller financial goals under ₹5,00,000 to track progress towards immediate needs.' 
+                : 'Define larger financial goals over ₹5,00,000 to track progress towards major life milestones.'}
             </p>
           </div>
           
@@ -204,12 +250,35 @@ const NewGoal = () => {
             </div>
           </div>
           
+          <div className="flex justify-between items-center mb-6">
+            <Button
+              type="button"
+              variant={goalSize === 'micro' ? "default" : "outline"}
+              onClick={() => {
+                setGoalSize('micro');
+                setFormData(prev => ({ ...prev, goalType: '', targetAmount: '' }));
+              }}
+            >
+              Micro Goal
+            </Button>
+            <Button
+              type="button"
+              variant={goalSize === 'macro' ? "default" : "outline"}
+              onClick={() => {
+                setGoalSize('macro');
+                setFormData(prev => ({ ...prev, goalType: '', targetAmount: '' }));
+              }}
+            >
+              Macro Goal
+            </Button>
+          </div>
+          
           <form onSubmit={handleSubmit}>
             <GlassCard className="mb-6">
               <div className="mb-6">
                 <Label className="mb-3 block">Select Goal Type</Label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {GOAL_TYPES.map(({ id, label, icon: Icon }) => (
+                  {currentGoalTypes.map(({ id, label, icon: Icon }) => (
                     <button
                       key={id}
                       type="button"
@@ -255,7 +324,7 @@ const NewGoal = () => {
                     name="targetAmount"
                     value={formData.targetAmount}
                     onChange={handleChange}
-                    placeholder="e.g., 5000000"
+                    placeholder={goalSize === 'micro' ? "e.g., 100000 (under 5,00,000)" : "e.g., 5000000 (5,00,000 or more)"}
                     className="mt-1"
                     type="number"
                   />
