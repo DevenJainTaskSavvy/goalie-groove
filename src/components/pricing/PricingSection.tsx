@@ -53,7 +53,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
     {
       name: "Pro",
       description: "Advanced planning with MF suggestions",
-      price: "₹299",
+      price: "₹599",
       period: "per month",
       features: [
         { name: "Everything in Free", included: true },
@@ -69,7 +69,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
     {
       name: "Premium",
       description: "Full autopay functionality & more",
-      price: "₹599",
+      price: "₹999",
       period: "per month",
       features: [
         { name: "Everything in Pro", included: true },
@@ -85,13 +85,11 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
   ];
 
   return (
-    <div
-      className={cn("py-12 md:py-16", isDashboard ? "max-w-6xl mx-auto" : "")}
-    >
-      <div className="text-center mb-12">
+    <div className={cn("py-4 md:py-8", isDashboard ? "max-w-6xl mx-auto" : "")}>
+      <div className="text-center mb-6">
         <h2
           className={cn(
-            "text-3xl md:text-4xl font-bold mb-4",
+            "text-3xl md:text-4xl font-bold mb-2",
             isDashboard ? "text-foreground" : "text-gradient"
           )}
         >
@@ -103,7 +101,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto px-4">
         {plans.map((plan, index) => (
           <GlassCard
             key={index}
@@ -114,7 +112,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
             )}
           >
             {plan.badge && (
-              <div className="absolute -top-3 -right-3 bg-primary text-primary-foreground text-xs font-bold py-1 px-3 rounded-full">
+              <div className="absolute top-1 right-4 bg-primary text-primary-foreground text-xs font-bold py-1 px-3 rounded-full whitespace-nowrap">
                 {plan.badge}
               </div>
             )}

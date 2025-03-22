@@ -11,43 +11,31 @@ import {
   PieChart,
   LineChart,
   TrendingUp,
-  Rocket,
-  Shield,
   Check,
+  Target,
+  Users,
+  Bell,
 } from "lucide-react";
 
 const Index = () => {
   const features = [
     {
-      icon: <PieChart className="h-10 w-10 text-primary mb-4" />,
-      title: "Smart Portfolio Management",
+      icon: <Target className="h-10 w-10 text-primary mb-4" />,
+      title: "Precision Goal Tracking",
       description:
-        "Track and visualize your investments across different asset classes",
+        "Monitor progress towards micro and macro financial goals in real time",
     },
     {
-      icon: <LineChart className="h-10 w-10 text-primary mb-4" />,
-      title: "Goal-Based Planning",
+      icon: <Users className="h-10 w-10 text-primary mb-4" />,
+      title: "Collaborative Investing",
       description:
-        "Set financial goals with personalized timelines and track your progress",
+        "Invest and track goals together with friends, family, or teams",
     },
     {
-      icon: <TrendingUp className="h-10 w-10 text-primary mb-4" />,
-      title: "Performance Analytics",
+      icon: <Bell className="h-10 w-10 text-primary mb-4" />,
+      title: "Automated Reminders",
       description:
-        "Detailed insights and analytics to optimize your investment strategies",
-    },
-  ];
-
-  const benefits = [
-    {
-      icon: <Shield />,
-      title: "Secure & Private",
-      description: "Bank-level encryption to protect your data",
-    },
-    {
-      icon: <Rocket />,
-      title: "Boost Returns",
-      description: "Smart recommendations to maximize your investment returns",
+        "Get alerts to stay on track with your investment milestones",
     },
   ];
 
@@ -59,13 +47,13 @@ const Index = () => {
       <section className="flex-1 container mx-auto px-4 flex flex-col items-center justify-center py-24 md:py-32">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <AnimatedText
-            text="Reach Financial Freedom With Smart Investment Planning"
+            text="Track. Invest. Achieve. Smart Investing for Every Goal"
             element="h1"
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
             variant="gradient"
           />
           <AnimatedText
-            text="Set goals, track your investments, and get personalized recommendations to build wealth and secure your future."
+            text="Set micro and macro goals, track your Progress and collaborate with your family and friends."
             element="p"
             className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
             delay={300}
@@ -100,11 +88,11 @@ const Index = () => {
                 >
                   <div className="flex flex-col items-center text-center p-4">
                     <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-                      <BarChart3 className="h-7 w-7 text-primary" />
+                      <BarChart3 className="h-9 w-9 text-primary" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2">30+</h3>
+                    <h3 className="text-xl font-medium mb-2">1M+ </h3>
                     <p className="text-sm text-muted-foreground">
-                      Goals Trackable
+                      Worth of goals tracked
                     </p>
                   </div>
                 </div>
@@ -115,11 +103,11 @@ const Index = () => {
                 >
                   <div className="flex flex-col items-center text-center p-4">
                     <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
-                      <TrendingUp className="h-7 w-7 text-emerald-500" />
+                      <TrendingUp className="h-9 w-9 text-emerald-500" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2">23.4L</h3>
+                    <h3 className="text-xl font-medium mb-2">300k+</h3>
                     <p className="text-sm text-muted-foreground">
-                      Stocks allocated
+                      Users on the platform
                     </p>
                   </div>
                 </div>
@@ -130,11 +118,11 @@ const Index = () => {
                 >
                   <div className="flex flex-col items-center text-center p-4">
                     <div className="w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
-                      <PieChart className="h-7 w-7 text-purple-500" />
+                      <PieChart className="h-9 w-9 text-purple-500" />
                     </div>
-                    <h3 className="text-xl font-medium mb-2">5</h3>
+                    <h3 className="text-xl font-medium mb-2">80%</h3>
                     <p className="text-sm text-muted-foreground">
-                      Active Goals
+                      Success Rate of Goals
                     </p>
                   </div>
                 </div>
@@ -170,16 +158,15 @@ const Index = () => {
             >
               <h3 className="text-2xl font-bold mb-4">Our Mission</h3>
               <p className="text-muted-foreground mb-4">
-                At GROWVEST, we believe that financial freedom should be
-                accessible to everyone. Our mission is to empower you with the
-                tools, knowledge, and confidence to make smart investment
-                decisions that align with your life goals.
+                At GrowInvest, we believe every financial goal—big or
+                small—deserves a clear strategy. Our platform combines micro and
+                macro investing, goal-based tracking, and collaborative finance
+                to help you stay on course. Whether you're rounding up spare
+                change, planning for long-term wealth, or navigating tough
+                financial situations, GrowInvest ensures you always know how
+                much to invest and when to adjust. 🚀
               </p>
-              <p className="text-muted-foreground">
-                We're dedicated to simplifying wealth creation through
-                technology, education, and personalized guidance that adapts to
-                your unique financial journey.
-              </p>
+              <p className="text-muted-foreground"></p>
             </GlassCard>
 
             <GlassCard
@@ -198,11 +185,15 @@ const Index = () => {
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Bank-level security protecting your information</span>
+                  <span>Micro & macro investment tracking in one place</span>
                 </li>
                 <li className="flex items-start">
                   <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Transparent, no hidden fee structure</span>
+                  <span>Collaborative investing with friends & family</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Automated progress tracking & reminders</span>
                 </li>
               </ul>
             </GlassCard>
@@ -247,24 +238,6 @@ const Index = () => {
                   <p className="text-muted-foreground">{feature.description}</p>
                 </div>
               </GlassCard>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {benefits.map((benefit, index) => (
-              <div
-                key={index}
-                className="flex items-start space-x-5 animate-fade-in"
-                style={{ animationDelay: `${900 + index * 200}ms` }}
-              >
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  {benefit.icon}
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium mb-2">{benefit.title}</h3>
-                  <p className="text-muted-foreground">{benefit.description}</p>
-                </div>
-              </div>
             ))}
           </div>
         </div>
