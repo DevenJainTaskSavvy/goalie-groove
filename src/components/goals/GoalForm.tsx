@@ -243,17 +243,28 @@ const GoalForm = () => {
           </div>
           
           <div className="mt-6 flex items-center space-x-2">
-            <Checkbox 
-              id="autoDebit" 
-              checked={autoDebit}
-              onCheckedChange={(checked) => setAutoDebit(checked === true)}
-            />
-            <label
-              htmlFor="autoDebit"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-            >
-              Enable Auto-Debit - Never miss a deadline! Stay on top of your financial goals!
-            </label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="autoDebit" 
+                      checked={autoDebit}
+                      onCheckedChange={(checked) => setAutoDebit(checked === true)}
+                    />
+                    <label
+                      htmlFor="autoDebit"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Enable Auto-Debit
+                    </label>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="p-2 max-w-xs bg-primary/90 text-primary-foreground">
+                  <p>Never miss a deadline! Stay on top of your financial goals!</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           
           <GoalContributionInfo 

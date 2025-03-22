@@ -1,21 +1,33 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
+import AnimatedText from '@/components/ui/AnimatedText';
 import { useToast } from '@/hooks/use-toast';
-import { saveUserProfile, getUserProfile } from '@/services/api';
+import { saveUserProfile } from '@/services/api';
 import { UserProfile } from '@/types/finance';
-import FormStep from './FormStep';
-import FormNavigation from './FormNavigation';
-import FormLoading from './FormLoading';
-import { formSteps } from './types';
+
+interface FormStep {
+  title: string;
+  fields: {
+    name: string;
+    label: string;
+    type: string;
+    placeholder: string;
+    options?: string[];
+    required: boolean;
+  }[];
+}
 
 const OnboardingForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: '',
     age: undefined,
@@ -28,34 +40,37 @@ const OnboardingForm = () => {
     riskTolerance: 'moderate'
   });
   
-  // Load existing profile data when component mounts
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        setIsLoading(true);
-        const profile = await getUserProfile();
-        
-        if (profile) {
-          setFormData(profile);
-          toast({
-            title: 'Profile loaded',
-            description: 'Your existing profile data has been loaded'
-          });
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load your profile',
-          variant: 'destructive'
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadUserProfile();
-  }, [toast]);
+  const steps: FormStep[] = [
+    {
+      title: "Let's get to know you",
+      fields: [
+        { name: 'name', label: 'Your Name', type: 'text', placeholder: 'Enter your full name', required: true },
+        { name: 'age', label: 'Your Age', type: 'number', placeholder: 'Enter your age', required: true }
+      ]
+    },
+    {
+      title: "Let's talk about your finances",
+      fields: [
+        { name: 'savings', label: 'Current Savings (₹)', type: 'number', placeholder: 'Enter current savings amount', required: true },
+        { name: 'monthlyInvestmentCapacity', label: 'Monthly Investment Capacity (₹)', type: 'number', placeholder: 'Enter amount you can invest monthly', required: true }
+      ]
+    },
+    {
+      title: "Tell us about your life goals",
+      fields: [
+        { name: 'relationshipStatus', label: 'Relationship Status', type: 'select', placeholder: 'Select your status', options: ['Single', 'Married', 'In a relationship'], required: true },
+        { name: 'hasKids', label: 'Do you have children?', type: 'select', placeholder: 'Select an option', options: ['Yes', 'No', 'Planning for children'], required: true }
+      ]
+    },
+    {
+      title: "Planning for the future",
+      fields: [
+        { name: 'retirementAge', label: 'Desired Retirement Age', type: 'number', placeholder: 'At what age do you want to retire?', required: true },
+        { name: 'purchasePlans', label: 'Major Purchase Plans', type: 'select', placeholder: 'Select planned purchases', options: ['Home', 'Car', 'Both', 'None'], required: true },
+        { name: 'riskTolerance', label: 'Risk Tolerance', type: 'select', placeholder: 'Select your risk tolerance', options: ['Conservative', 'Moderate', 'Aggressive'], required: true }
+      ]
+    }
+  ];
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -69,13 +84,13 @@ const OnboardingForm = () => {
   };
 
   const handleNext = async () => {
-    const currentFields = formSteps[currentStep].fields;
+    const currentFields = steps[currentStep].fields;
     const isValid = currentFields.every(field => 
       !field.required || formData[field.name as keyof typeof formData]
     );
     
     if (isValid) {
-      if (currentStep < formSteps.length - 1) {
+      if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
         // Final step - submit profile
@@ -128,37 +143,86 @@ const OnboardingForm = () => {
     }
   };
   
-  if (isLoading) {
-    return <FormLoading />;
-  }
+  const currentForm = steps[currentStep];
   
   return (
     <GlassCard className="w-full max-w-md mx-auto">
-      <div className="flex space-x-1 mt-4 mb-6">
-        {Array.from({ length: formSteps.length }).map((_, index) => (
-          <div 
-            key={index} 
-            className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-              index === currentStep ? 'bg-primary' : 
-              index < currentStep ? 'bg-primary/60' : 'bg-white/10'
-            }`} 
-          />
+      <div className="mb-6">
+        <AnimatedText 
+          text={currentForm.title} 
+          element="h2"
+          className="text-xl font-semibold mb-1" 
+        />
+        
+        <div className="flex space-x-1 mt-4">
+          {steps.map((_, index) => (
+            <div 
+              key={index} 
+              className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+                index === currentStep ? 'bg-primary' : 
+                index < currentStep ? 'bg-primary/60' : 'bg-white/10'
+              }`} 
+            />
+          ))}
+        </div>
+      </div>
+      
+      <div className="space-y-4">
+        {currentForm.fields.map((field) => (
+          <div key={field.name} className="space-y-2 animate-fade-in">
+            <Label htmlFor={field.name}>{field.label}</Label>
+            
+            {field.type === 'select' ? (
+              <select
+                id={field.name}
+                name={field.name}
+                value={formData[field.name as keyof typeof formData] as string || ''}
+                onChange={handleChange}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background/50 text-foreground"
+                required={field.required}
+              >
+                <option value="">{field.placeholder}</option>
+                {field.options?.map((option) => (
+                  <option key={option} value={option.toLowerCase()}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <Input
+                id={field.name}
+                name={field.name}
+                type={field.type}
+                placeholder={field.placeholder}
+                value={formData[field.name as keyof typeof formData] as string || ''}
+                onChange={handleChange}
+                required={field.required}
+                className="bg-background/50"
+              />
+            )}
+          </div>
         ))}
       </div>
       
-      <FormStep 
-        step={formSteps[currentStep]} 
-        formData={formData} 
-        onChange={handleChange} 
-      />
-      
-      <FormNavigation 
-        currentStep={currentStep} 
-        totalSteps={formSteps.length}
-        isSubmitting={isSubmitting}
-        onNext={handleNext}
-        hasExistingProfile={!!formData.id}
-      />
+      <div className="mt-8 flex justify-end">
+        <Button 
+          onClick={handleNext}
+          className="group"
+          disabled={isSubmitting}
+        >
+          {currentStep < steps.length - 1 ? (
+            <>
+              Next
+              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </>
+          ) : (
+            <>
+              Complete
+              <CheckCircle2 className="ml-2 w-4 h-4" />
+            </>
+          )}
+        </Button>
+      </div>
     </GlassCard>
   );
 };
