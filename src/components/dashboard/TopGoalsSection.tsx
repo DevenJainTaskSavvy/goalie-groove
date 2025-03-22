@@ -254,12 +254,36 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
         return;
       }
 
-      // Check if emergency fund amount exceeds initial savings
-      if (amount > userProfile.savings) {
+      // Calculate remaining initial savings
+      const totalCurrentAmount = goals.reduce(
+        (sum, goal) => sum + goal.currentAmount,
+        0
+      );
+      const remainingSavings = userProfile.savings - totalCurrentAmount;
+
+      // Calculate remaining amount needed for the goal
+      const remainingGoalAmount =
+        originalGoal.targetAmount - originalGoal.currentAmount;
+
+      // Check if emergency fund amount exceeds remaining initial savings
+      if (amount > remainingSavings) {
         toast({
           title: "Insufficient Emergency Fund",
-          description:
-            "Your emergency fund amount cannot exceed your initial savings.",
+          description: `Your emergency fund amount cannot exceed your remaining initial savings of ₹${remainingSavings.toFixed(
+            2
+          )}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if emergency fund amount exceeds remaining goal amount
+      if (amount > remainingGoalAmount) {
+        toast({
+          title: "Invalid Emergency Fund Amount",
+          description: `Your emergency fund amount cannot exceed the remaining goal amount of ₹${remainingGoalAmount.toFixed(
+            2
+          )}.`,
           variant: "destructive",
         });
         return;
@@ -278,16 +302,6 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
         currentAmount: newCurrentAmount,
         progress: newProgress,
       });
-
-      // Update user's initial savings
-      const updatedProfile = {
-        ...userProfile,
-        savings: userProfile.savings - amount,
-      };
-      localStorage.setItem(
-        "growvest_user_profile",
-        JSON.stringify(updatedProfile)
-      );
 
       // Show success message
       toast({
