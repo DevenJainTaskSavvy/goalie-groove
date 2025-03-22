@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import GlassCard from '@/components/ui/GlassCard';
 import { cn } from '@/lib/utils';
-import { Target, TrendingUp, CalendarClock, MoreVertical, Pencil, Trash2, IndianRupee } from 'lucide-react';
+import { Target, TrendingUp, CalendarClock, MoreVertical, Pencil, Trash2, IndianRupee, ArrowLeftRight } from 'lucide-react';
 import { 
   ContextMenu,
   ContextMenuTrigger,
@@ -24,6 +24,7 @@ import { deleteGoal } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import DeleteConfirmation from '@/components/dashboard/DeleteConfirmation';
 import { GoalCategory } from '@/types/finance';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 interface GoalCardProps {
   id: string;
@@ -36,6 +37,8 @@ interface GoalCardProps {
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
   onFinance?: (goalId: string, goalTitle: string, remainingAmount: number) => void;
+  onRebalance?: (goalId: string, goalTitle: string, currentAmountValue: number) => void;
+  isMicroGoal?: boolean;
 }
 
 const GoalCard = ({
@@ -49,6 +52,8 @@ const GoalCard = ({
   onDelete,
   onEdit,
   onFinance,
+  onRebalance,
+  isMicroGoal = false,
 }: GoalCardProps) => {
   
   const [showFinanceDialog, setShowFinanceDialog] = useState(false);
@@ -77,6 +82,12 @@ const GoalCard = ({
     if (onFinance) {
       onFinance(id, title, remainingAmount);
       setShowFinanceDialog(false);
+    }
+  };
+
+  const handleRebalance = () => {
+    if (onRebalance) {
+      onRebalance(id, title, currentValue);
     }
   };
 
@@ -114,33 +125,69 @@ const GoalCard = ({
               </div>
               
               {progress < 100 && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full mt-2 gap-2"
-                      size="sm"
-                    >
-                      <IndianRupee className="h-4 w-4" />
-                      Finance
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Finance Your Goal</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Would you like to finance the remaining ₹{remainingAmount.toFixed(2)} for "{title}"? 
-                        This will create a loan and instantly fulfill your goal.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleFinance}>
-                        Yes, Apply for Financing
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <div className="flex flex-col space-y-2 mt-2">
+                  {/* Finance button */}
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full gap-2"
+                        size="sm"
+                      >
+                        <IndianRupee className="h-4 w-4" />
+                        Finance
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Finance Your Goal</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Would you like to finance the remaining ₹{remainingAmount.toFixed(2)} for "{title}"? 
+                          This will create a loan and instantly fulfill your goal.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleFinance}>
+                          Yes, Apply for Financing
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  
+                  {/* Re-Balance button - only for micro goals */}
+                  {isMicroGoal && currentValue > 0 && (
+                    <Sheet>
+                      <SheetTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2"
+                          size="sm"
+                        >
+                          <ArrowLeftRight className="h-4 w-4" />
+                          Re-Balance
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent>
+                        <SheetHeader>
+                          <SheetTitle>Re-Balance Your Goal</SheetTitle>
+                          <SheetDescription>
+                            Redistribute the funds from "{title}" to one of your other goals.
+                            Available amount: ₹{currentValue.toFixed(2)}
+                          </SheetDescription>
+                        </SheetHeader>
+                        <div className="py-4">
+                          <Button 
+                            onClick={handleRebalance}
+                            className="w-full mt-4"
+                          >
+                            Continue to Re-Balance
+                          </Button>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  )}
+                </div>
               )}
             </div>
             
