@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import GlassCard from '@/components/ui/GlassCard';
 import { cn } from '@/lib/utils';
-import { Target, TrendingUp, CalendarClock, MoreVertical, Pencil, Trash2, DollarSign } from 'lucide-react';
+import { Target, TrendingUp, CalendarClock, MoreVertical, Pencil, Trash2, IndianRupee } from 'lucide-react';
 import { 
   ContextMenu,
   ContextMenuTrigger,
@@ -121,7 +121,7 @@ const GoalCard = ({
                       className="w-full mt-2 gap-2"
                       size="sm"
                     >
-                      <DollarSign className="h-4 w-4" />
+                      <IndianRupee className="h-4 w-4" />
                       Finance
                     </Button>
                   </AlertDialogTrigger>
@@ -129,7 +129,7 @@ const GoalCard = ({
                     <AlertDialogHeader>
                       <AlertDialogTitle>Finance Your Goal</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Would you like to finance the remaining ${remainingAmount.toFixed(2)} for "{title}"? 
+                        Would you like to finance the remaining ₹{remainingAmount.toFixed(2)} for "{title}"? 
                         This will create a loan and instantly fulfill your goal.
                       </AlertDialogDescription>
                     </AlertDialogHeader>

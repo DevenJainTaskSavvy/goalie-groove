@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
 import { Goal } from '@/types/finance';
@@ -7,7 +7,7 @@ import GoalCard from '@/components/dashboard/GoalCard';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/services/api';
-import { addGoal } from '@/services/goalService';
+import { addGoal, updateGoal } from '@/services/goalService';
 import { useToast } from '@/hooks/use-toast';
 
 interface TopGoalsSectionProps {
@@ -22,6 +22,15 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
   onEditGoal
 }) => {
   const { toast } = useToast();
+  const [filteredGoals, setFilteredGoals] = useState<Goal[]>([]);
+
+  useEffect(() => {
+    // Filter out any goals that are loans (have "Loan for" in the title)
+    const nonLoanGoals = goals.filter(
+      goal => !goal.title.startsWith('Loan for')
+    );
+    setFilteredGoals(nonLoanGoals);
+  }, [goals]);
 
   const handleFinanceGoal = async (goalId: string, goalTitle: string, remainingAmount: number) => {
     try {
@@ -52,6 +61,13 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
       // Add the loan goal to the database
       await addGoal(loanGoal);
       
+      // Mark the original goal as completed (set currentAmount to targetAmount)
+      await updateGoal({
+        id: goalId,
+        currentAmount: originalGoal.targetAmount,
+        progress: 100
+      });
+      
       // Show success message
       toast({
         title: "Financing Applied",
@@ -78,7 +94,7 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
         <Link to="/goals" className="text-sm text-primary hover:underline">View all</Link>
       </div>
       
-      {goals.length === 0 ? (
+      {filteredGoals.length === 0 ? (
         <GlassCard className="text-center py-12">
           <p className="text-muted-foreground">You haven't created any goals yet.</p>
           <Link to="/goals/new">
@@ -90,7 +106,7 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
         </GlassCard>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {goals.map((goal) => (
+          {filteredGoals.map((goal) => (
             <GoalCard 
               key={goal.id}
               id={goal.id}
