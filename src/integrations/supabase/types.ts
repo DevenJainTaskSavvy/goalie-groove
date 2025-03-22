@@ -9,54 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      financial_goals: {
-        Row: {
-          category: string
-          created_at: string
-          current_amount: number
-          description: string | null
-          id: string
-          monthly_contribution: number
-          progress: number
-          risk_level: string
-          target_amount: number
-          timeline: number
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          category: string
-          created_at?: string
-          current_amount: number
-          description?: string | null
-          id?: string
-          monthly_contribution: number
-          progress: number
-          risk_level: string
-          target_amount: number
-          timeline: number
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          current_amount?: number
-          description?: string | null
-          id?: string
-          monthly_contribution?: number
-          progress?: number
-          risk_level?: string
-          target_amount?: number
-          timeline?: number
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       subscriptions: {
         Row: {
           created_at: string
@@ -84,57 +36,6 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      user_profiles: {
-        Row: {
-          age: number | null
-          created_at: string
-          email: string | null
-          has_kids: string | null
-          id: string
-          monthly_investment_capacity: number | null
-          name: string
-          phone: string | null
-          purchase_plans: string | null
-          relationship_status: string | null
-          retirement_age: number | null
-          risk_tolerance: string | null
-          savings: number | null
-          updated_at: string
-        }
-        Insert: {
-          age?: number | null
-          created_at?: string
-          email?: string | null
-          has_kids?: string | null
-          id: string
-          monthly_investment_capacity?: number | null
-          name: string
-          phone?: string | null
-          purchase_plans?: string | null
-          relationship_status?: string | null
-          retirement_age?: number | null
-          risk_tolerance?: string | null
-          savings?: number | null
-          updated_at?: string
-        }
-        Update: {
-          age?: number | null
-          created_at?: string
-          email?: string | null
-          has_kids?: string | null
-          id?: string
-          monthly_investment_capacity?: number | null
-          name?: string
-          phone?: string | null
-          purchase_plans?: string | null
-          relationship_status?: string | null
-          retirement_age?: number | null
-          risk_tolerance?: string | null
-          savings?: number | null
-          updated_at?: string
         }
         Relationships: []
       }
