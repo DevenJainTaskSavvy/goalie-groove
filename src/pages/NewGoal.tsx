@@ -2,39 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
-import { Check, Target, CreditCard, Calendar, Info, AlertTriangle, Plane, Smartphone, ShoppingBag } from 'lucide-react';
-import { Goal, GoalCategory } from '@/types/finance';
-import { addGoal, calculateMonthlyContribution, formatCurrency, getUserProfile, getRemainingMonthlyCapacity } from '@/services/api';
+import { Info } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { GoalCategory } from '@/types/finance';
+import { addGoal, calculateMonthlyContribution, formatCurrency, getRemainingMonthlyCapacity } from '@/services/api';
 import { MICRO_GOAL_THRESHOLD } from '@/components/dashboard/goalUtils';
 
-// Goal types based on size
-const MICRO_GOAL_TYPES = [
-  { id: 'travel', label: 'Travel', icon: Plane, category: 'Travel' as GoalCategory },
-  { id: 'electronics', label: 'Electronics', icon: Smartphone, category: 'Electronics' as GoalCategory },
-  { id: 'accessories', label: 'Accessories', icon: ShoppingBag, category: 'Accessories' as GoalCategory },
-  { id: 'other', label: 'Other', icon: Target, category: 'Other' as GoalCategory },
-];
-
-const MACRO_GOAL_TYPES = [
-  { id: 'retirement', label: 'Retirement', icon: Calendar, category: 'Retirement' as GoalCategory },
-  { id: 'education', label: 'Education', icon: Target, category: 'Education' as GoalCategory },
-  { id: 'housing', label: 'Housing', icon: CreditCard, category: 'Housing' as GoalCategory },
-  { id: 'vehicle', label: 'Vehicle', icon: Target, category: 'Vehicle' as GoalCategory },
-  { id: 'other', label: 'Other', icon: Target, category: 'Other' as GoalCategory },
-];
-
-const RISK_LEVELS = [
-  { id: 'conservative', label: 'Conservative', description: 'Lower risk, lower returns (6% annually)' },
-  { id: 'moderate', label: 'Moderate', description: 'Balanced risk and returns (10% annually)' },
-  { id: 'aggressive', label: 'Aggressive', description: 'Higher risk, higher returns (14% annually)' }
-];
+// Import our new components
+import GoalTypeSelector from '@/components/goals/GoalTypeSelector';
+import RiskLevelSelector from '@/components/goals/RiskLevelSelector';
+import GoalContributionInfo from '@/components/goals/GoalContributionInfo';
+import GoalFormFields from '@/components/goals/GoalFormFields';
+import { MICRO_GOAL_TYPES, MACRO_GOAL_TYPES } from '@/components/goals/goalConstants';
 
 const NewGoal = () => {
   const navigate = useNavigate();
@@ -220,9 +203,6 @@ const NewGoal = () => {
     }
   };
   
-  // Get the current goal types based on the goal size
-  const currentGoalTypes = goalSize === 'micro' ? MICRO_GOAL_TYPES : MACRO_GOAL_TYPES;
-  
   return (
     <div className="min-h-screen bg-background pt-16">
       <Header />
@@ -277,158 +257,30 @@ const NewGoal = () => {
             <GlassCard className="mb-6">
               <div className="mb-6">
                 <Label className="mb-3 block">Select Goal Type</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {currentGoalTypes.map(({ id, label, icon: Icon }) => (
-                    <button
-                      key={id}
-                      type="button"
-                      className={`relative p-4 rounded-lg border transition-all ${
-                        formData.goalType === id 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-border hover:border-primary/50 bg-background/40'
-                      }`}
-                      onClick={() => handleGoalTypeSelect(id)}
-                    >
-                      <div className="flex flex-col items-center">
-                        <Icon className="h-6 w-6 mb-2 text-primary/80" />
-                        <span>{label}</span>
-                        
-                        {formData.goalType === id && (
-                          <div className="absolute top-2 right-2">
-                            <Check className="h-4 w-4 text-primary" />
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <GoalTypeSelector 
+                  goalSize={goalSize}
+                  selectedType={formData.goalType}
+                  onSelect={handleGoalTypeSelect}
+                />
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="goalName">Goal Name</Label>
-                  <Input
-                    id="goalName"
-                    name="goalName"
-                    value={formData.goalName}
-                    onChange={handleChange}
-                    placeholder="e.g., Retirement Fund, Dream Home"
-                    className="mt-1"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="targetAmount">Target Amount (₹)</Label>
-                  <Input
-                    id="targetAmount"
-                    name="targetAmount"
-                    value={formData.targetAmount}
-                    onChange={handleChange}
-                    placeholder={goalSize === 'micro' ? "e.g., 100000 (under 5,00,000)" : "e.g., 5000000 (5,00,000 or more)"}
-                    className="mt-1"
-                    type="number"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="currentAmount">Current Amount (₹)</Label>
-                  <Input
-                    id="currentAmount"
-                    name="currentAmount"
-                    value={formData.currentAmount}
-                    onChange={handleChange}
-                    placeholder="e.g., 100000"
-                    className="mt-1"
-                    type="number"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="timeline">Timeline (years)</Label>
-                  <Input
-                    id="timeline"
-                    name="timeline"
-                    value={formData.timeline}
-                    onChange={handleChange}
-                    placeholder="e.g., 10"
-                    className="mt-1"
-                    type="number"
-                  />
-                </div>
-                
-                <div>
-                  <Label className="mb-3 block">Risk Level</Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {RISK_LEVELS.map(({ id, label, description }) => (
-                      <button
-                        key={id}
-                        type="button"
-                        className={`relative p-3 rounded-lg border text-left transition-all ${
-                          formData.riskLevel === id 
-                            ? 'border-primary bg-primary/10' 
-                            : 'border-border hover:border-primary/50 bg-background/40'
-                        }`}
-                        onClick={() => handleRiskLevelSelect(id)}
-                      >
-                        <div>
-                          <span className="block font-medium">{label}</span>
-                          <span className="text-xs text-muted-foreground">{description}</span>
-                          
-                          {formData.riskLevel === id && (
-                            <div className="absolute top-2 right-2">
-                              <Check className="h-4 w-4 text-primary" />
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="description">Description (Optional)</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Add details about your goal..."
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
+              <GoalFormFields 
+                formData={formData}
+                goalSize={goalSize}
+                onChange={handleChange}
+              />
+              
+              <div className="mt-6">
+                <RiskLevelSelector 
+                  selectedRiskLevel={formData.riskLevel}
+                  onSelect={handleRiskLevelSelect}
+                />
               </div>
               
-              {calculatedContribution !== null && (
-                <div className={`mt-6 p-4 rounded-lg ${
-                  calculatedContribution > remainingCapacity
-                    ? 'bg-red-500/10 border border-red-500/20'
-                    : 'bg-green-500/10 border border-green-500/20'
-                }`}>
-                  <div className="flex items-start">
-                    {calculatedContribution > remainingCapacity ? (
-                      <AlertTriangle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div>
-                      <p className="font-medium">
-                        {calculatedContribution > remainingCapacity
-                          ? 'Exceeds your monthly capacity'
-                          : 'Within your monthly capacity'}
-                      </p>
-                      <p className="text-sm mt-1">
-                        This goal requires <span className="font-semibold">{formatCurrency(calculatedContribution)}</span> monthly contribution.
-                      </p>
-                      {calculatedContribution > remainingCapacity && (
-                        <p className="text-sm mt-1 text-red-500">
-                          You need to reduce your target amount or extend your timeline.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+              <GoalContributionInfo 
+                calculatedContribution={calculatedContribution}
+                remainingCapacity={remainingCapacity}
+              />
             </GlassCard>
             
             <div className="flex justify-end gap-4">
