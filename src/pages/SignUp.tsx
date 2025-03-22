@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,11 +8,13 @@ import GlassCard from '@/components/ui/GlassCard';
 import { useToast } from '@/hooks/use-toast';
 import { ChevronRight, Mail, Phone, User } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AuthContext } from '@/App';
 
 const SignUp = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('signup');
+  const { login } = useContext(AuthContext);
   
   // Signup state
   const [signupForm, setSignupForm] = useState({
@@ -78,6 +79,9 @@ const SignUp = () => {
     // Store user details (in real app, would be a proper auth system)
     localStorage.setItem('growvest_user', JSON.stringify(signupForm));
     
+    // Call the login function to update auth state
+    login();
+    
     // Navigate to onboarding
     navigate('/onboarding');
   };
@@ -100,6 +104,19 @@ const SignUp = () => {
       title: "Welcome back!",
       description: "Successfully logged in to your GrowVest account.",
     });
+    
+    // Mock user data for login
+    const mockUser = {
+      name: "User",
+      email: loginForm.email || "user@example.com",
+      phone: loginForm.phone || "1234567890"
+    };
+    
+    // Store the mock user data
+    localStorage.setItem('growvest_user', JSON.stringify(mockUser));
+    
+    // Call the login function to update auth state
+    login();
     
     // Navigate to dashboard
     navigate('/dashboard');

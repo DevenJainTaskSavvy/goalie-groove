@@ -1,23 +1,38 @@
 
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, LineChart, Target, User } from 'lucide-react';
+import { Home, LineChart, Target, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AuthContext } from '@/App';
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useContext(AuthContext);
   
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
+  const isLandingPage = location.pathname === '/';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   const navItems = [
-    { name: 'Home', path: '/', icon: Home },
-    { name: 'Dashboard', path: '/dashboard', icon: LineChart },
-    { name: 'Goals', path: '/goals', icon: Target },
-    { name: 'Profile', path: '/profile', icon: User },
+    { name: 'Home', path: '/', icon: Home, alwaysShow: true },
+    { name: 'Dashboard', path: '/dashboard', icon: LineChart, requiresAuth: true },
+    { name: 'Goals', path: '/goals', icon: Target, requiresAuth: true },
+    { name: 'Profile', path: '/profile', icon: User, requiresAuth: true },
   ];
+
+  // Filter nav items based on authentication status
+  const filteredNavItems = navItems.filter(item => 
+    item.alwaysShow || (item.requiresAuth && isAuthenticated)
+  );
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-white/5">
@@ -27,7 +42,7 @@ const Header = () => {
         </div>
         
         <nav className="hidden md:flex items-center space-x-8">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
@@ -49,19 +64,28 @@ const Header = () => {
         </nav>
         
         <div className="flex items-center space-x-3">
-          <Link to="/signup">
-            <Button variant="outline" size="sm" className="hidden md:inline-flex">
-              Login
+          {isLandingPage && !isAuthenticated ? (
+            <>
+              <Link to="/signup">
+                <Button variant="outline" size="sm" className="hidden md:inline-flex">
+                  Login
+                </Button>
+              </Link>
+              <Link to="/signup">
+                <Button size="sm" className="hidden md:inline-flex">
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          ) : isAuthenticated ? (
+            <Button variant="outline" size="sm" onClick={handleLogout} className="hidden md:inline-flex gap-2">
+              <LogOut className="h-4 w-4" />
+              Sign Out
             </Button>
-          </Link>
-          <Link to="/signup">
-            <Button size="sm" className="hidden md:inline-flex">
-              Sign Up
-            </Button>
-          </Link>
+          ) : null}
           
           <div className="md:hidden flex items-center space-x-6">
-            {navItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -82,6 +106,15 @@ const Header = () => {
                 </Link>
               );
             })}
+            
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="text-sm relative p-1.5 transition-colors text-muted-foreground"
+              >
+                <LogOut size={24} className="smooth-transition" />
+              </button>
+            )}
           </div>
         </div>
       </div>
