@@ -134,18 +134,30 @@ const OnboardingForm = () => {
   
   return (
     <GlassCard className="w-full max-w-md mx-auto">
+      <div className="flex space-x-1 mt-4 mb-6">
+        {Array.from({ length: formSteps.length }).map((_, index) => (
+          <div 
+            key={index} 
+            className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+              index === currentStep ? 'bg-primary' : 
+              index < currentStep ? 'bg-primary/60' : 'bg-white/10'
+            }`} 
+          />
+        ))}
+      </div>
+      
+      <FormStep 
+        step={formSteps[currentStep]} 
+        formData={formData} 
+        onChange={handleChange} 
+      />
+      
       <FormNavigation 
         currentStep={currentStep} 
         totalSteps={formSteps.length}
         isSubmitting={isSubmitting}
         onNext={handleNext}
         hasExistingProfile={!!formData.id}
-      />
-      
-      <FormStep 
-        step={formSteps[currentStep]} 
-        formData={formData} 
-        onChange={handleChange} 
       />
     </GlassCard>
   );
