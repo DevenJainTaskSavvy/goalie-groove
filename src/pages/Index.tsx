@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import AnimatedText from '@/components/ui/AnimatedText';
 import GlassCard from '@/components/ui/GlassCard';
 import PricingSection from '@/components/pricing/PricingSection';
+import Navbar from '@/components/layout/Navbar';
 import { ArrowRight, BarChart3, PieChart, LineChart, TrendingUp, Rocket, Shield } from 'lucide-react';
 
 const Index = () => {
@@ -40,14 +42,10 @@ const Index = () => {
   
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <header className="p-6">
-        <div className="container mx-auto">
-          <h1 className="text-2xl font-bold text-gradient">GROWVEST</h1>
-        </div>
-      </header>
+      <Navbar transparent />
       
       {/* Hero section */}
-      <section className="flex-1 container mx-auto px-4 flex flex-col items-center justify-center py-12 md:py-20">
+      <section className="flex-1 container mx-auto px-4 flex flex-col items-center justify-center py-24 md:py-32">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <AnimatedText 
             text="Reach Financial Freedom With Smart Investment Planning" 
@@ -114,6 +112,61 @@ const Index = () => {
               </div>
             </div>
           </GlassCard>
+        </div>
+      </section>
+      
+      {/* About Us Section */}
+      <section id="about" className="py-16 md:py-24 bg-black/10">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <AnimatedText 
+              text="About GROWVEST" 
+              element="h2"
+              className="text-3xl md:text-4xl font-bold mb-4"
+              variant="gradient"
+              delay={300}
+            />
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '400ms' }}>
+              Your trusted partner on the journey to financial freedom
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <GlassCard className="p-6 md:p-8 animate-fade-in" style={{ animationDelay: '500ms' }}>
+              <h3 className="text-2xl font-bold mb-4">Our Mission</h3>
+              <p className="text-muted-foreground mb-4">
+                At GROWVEST, we believe that financial freedom should be accessible to everyone. 
+                Our mission is to empower you with the tools, knowledge, and confidence 
+                to make smart investment decisions that align with your life goals.
+              </p>
+              <p className="text-muted-foreground">
+                We're dedicated to simplifying wealth creation through technology, education, 
+                and personalized guidance that adapts to your unique financial journey.
+              </p>
+            </GlassCard>
+            
+            <GlassCard className="p-6 md:p-8 animate-fade-in" style={{ animationDelay: '600ms' }}>
+              <h3 className="text-2xl font-bold mb-4">Why Choose Us</h3>
+              <ul className="space-y-3 text-muted-foreground">
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Intuitive, goal-based investment planning</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Data-driven insights for optimized returns</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Bank-level security protecting your information</span>
+                </li>
+                <li className="flex items-start">
+                  <Check className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Transparent, no hidden fee structure</span>
+                </li>
+              </ul>
+            </GlassCard>
+          </div>
         </div>
       </section>
       
