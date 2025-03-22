@@ -2,7 +2,7 @@
 import React, { useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, LineChart, Target, User, LogOut } from 'lucide-react';
+import { Home, LineChart, Target, User, LogOut, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AuthContext } from '@/App';
 
@@ -26,6 +26,7 @@ const Header = () => {
     { name: 'Home', path: '/', icon: Home, alwaysShow: true },
     { name: 'Dashboard', path: '/dashboard', icon: LineChart, requiresAuth: true },
     { name: 'Goals', path: '/goals', icon: Target, requiresAuth: true },
+    { name: 'Pricing', path: '/pricing', icon: CreditCard, requiresAuth: true },
     { name: 'Profile', path: '/profile', icon: User, requiresAuth: true },
   ];
 

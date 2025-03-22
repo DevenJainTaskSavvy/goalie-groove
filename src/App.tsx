@@ -12,6 +12,7 @@ import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
 import NewGoal from "./pages/NewGoal";
+import Pricing from "./pages/Pricing";
 
 // Create authentication context
 export const AuthContext = createContext<{
@@ -83,6 +84,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <NewGoal />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/pricing" 
+                element={
+                  <ProtectedRoute>
+                    <Pricing />
                   </ProtectedRoute>
                 } 
               />

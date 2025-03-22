@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import AnimatedText from '@/components/ui/AnimatedText';
 import GlassCard from '@/components/ui/GlassCard';
+import PricingSection from '@/components/pricing/PricingSection';
 import { ArrowRight, BarChart3, PieChart, LineChart, TrendingUp, Rocket, Shield } from 'lucide-react';
 
 const Index = () => {
@@ -160,6 +160,13 @@ const Index = () => {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+      
+      {/* Pricing Section */}
+      <section id="pricing" className="bg-black/10">
+        <div className="container mx-auto px-4">
+          <PricingSection variant="landing" />
         </div>
       </section>
       
