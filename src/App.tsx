@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import SignUp from "./pages/SignUp";
 import NewGoal from "./pages/NewGoal";
 import Pricing from "./pages/Pricing";
+import Community from "./pages/Community";
 
 // Create authentication context
 export const AuthContext = createContext<{
@@ -92,6 +93,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Pricing />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/community" 
+                element={
+                  <ProtectedRoute>
+                    <Community />
                   </ProtectedRoute>
                 } 
               />
