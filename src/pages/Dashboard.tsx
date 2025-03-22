@@ -20,6 +20,7 @@ const Dashboard = () => {
   const [initialSavings, setInitialSavings] = useState(0);
   const [monthlyCapacity, setMonthlyCapacity] = useState(0);
   const [monthlySpent, setMonthlySpent] = useState(0);
+  const [totalCurrentAmount, setTotalCurrentAmount] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -49,6 +50,10 @@ const Dashboard = () => {
         // Calculate total monthly spending on goals
         const totalMonthlySpent = goalsData.reduce((sum, goal) => sum + goal.monthlyContribution, 0);
         setMonthlySpent(totalMonthlySpent);
+        
+        // Calculate total current amount across all goals
+        const totalInvested = goalsData.reduce((sum, goal) => sum + goal.currentAmount, 0);
+        setTotalCurrentAmount(totalInvested);
         
         // Prepare data for monthly allocation pie chart
         const allocationData = goalsData.map((goal, index) => ({
@@ -106,6 +111,7 @@ const Dashboard = () => {
           initialSavings={initialSavings}
           monthlyCapacity={monthlyCapacity}
           monthlySpent={monthlySpent}
+          totalCurrentAmount={totalCurrentAmount}
         />
         
         {/* Monthly Goal Allocations */}

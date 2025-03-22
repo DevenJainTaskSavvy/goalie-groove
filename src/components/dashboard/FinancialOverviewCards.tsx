@@ -8,15 +8,20 @@ interface FinancialOverviewCardsProps {
   initialSavings: number;
   monthlyCapacity: number;
   monthlySpent: number;
+  totalCurrentAmount?: number;
 }
 
 const FinancialOverviewCards: React.FC<FinancialOverviewCardsProps> = ({
   initialSavings,
   monthlyCapacity,
-  monthlySpent
+  monthlySpent,
+  totalCurrentAmount = 0
 }) => {
   // Calculate remaining monthly capacity
   const remainingCapacity = Math.max(0, monthlyCapacity - monthlySpent);
+  
+  // Calculate remaining savings
+  const remainingSavings = Math.max(0, initialSavings - totalCurrentAmount);
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -28,6 +33,9 @@ const FinancialOverviewCards: React.FC<FinancialOverviewCardsProps> = ({
           <div>
             <p className="text-sm text-muted-foreground">Initial Savings</p>
             <h3 className="text-2xl font-bold">{formatCurrency(initialSavings)}</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Remaining: {formatCurrency(remainingSavings)}
+            </p>
           </div>
         </div>
       </GlassCard>
