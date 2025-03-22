@@ -1,10 +1,15 @@
-
-import React from 'react';
-import { Goal } from '@/types/finance';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { formatCurrency } from '@/services/api';
+import React from "react";
+import { Goal } from "@/types/finance";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatCurrency } from "@/services/api";
 
 interface EditGoalFormFieldsProps {
   formData: {
@@ -13,8 +18,8 @@ interface EditGoalFormFieldsProps {
     targetAmount: string;
     currentAmount: string;
     timeline: number;
-    category: Goal['category'];
-    riskLevel: Goal['riskLevel'];
+    category: Goal["category"];
+    riskLevel: Goal["riskLevel"];
   };
   monthlyContribution: number;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -25,7 +30,7 @@ const EditGoalFormFields: React.FC<EditGoalFormFieldsProps> = ({
   formData,
   monthlyContribution,
   handleChange,
-  handleSelectChange
+  handleSelectChange,
 }) => {
   return (
     <div className="grid gap-4 py-4">
@@ -83,9 +88,9 @@ const EditGoalFormFields: React.FC<EditGoalFormFieldsProps> = ({
         <Label htmlFor="category" className="text-right">
           Category
         </Label>
-        <Select 
-          value={formData.category} 
-          onValueChange={(value) => handleSelectChange('category', value)}
+        <Select
+          value={formData.category}
+          onValueChange={(value) => handleSelectChange("category", value)}
         >
           <SelectTrigger className="col-span-3">
             <SelectValue placeholder="Select a category" />
@@ -104,9 +109,9 @@ const EditGoalFormFields: React.FC<EditGoalFormFieldsProps> = ({
         <Label htmlFor="riskLevel" className="text-right">
           Risk Level
         </Label>
-        <Select 
-          value={formData.riskLevel} 
-          onValueChange={(value) => handleSelectChange('riskLevel', value)}
+        <Select
+          value={formData.riskLevel}
+          onValueChange={(value) => handleSelectChange("riskLevel", value)}
         >
           <SelectTrigger className="col-span-3">
             <SelectValue placeholder="Select risk level" />
