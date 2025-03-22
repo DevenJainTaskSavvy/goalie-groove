@@ -1,27 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
-import AnimatedText from '@/components/ui/AnimatedText';
 import { useToast } from '@/hooks/use-toast';
 import { saveUserProfile, getUserProfile } from '@/services/api';
 import { UserProfile } from '@/types/finance';
-
-interface FormStep {
-  title: string;
-  fields: {
-    name: string;
-    label: string;
-    type: string;
-    placeholder: string;
-    options?: string[];
-    required: boolean;
-  }[];
-}
+import FormStep from './FormStep';
+import FormNavigation from './FormNavigation';
+import FormLoading from './FormLoading';
+import { formSteps } from './types';
 
 const OnboardingForm = () => {
   const navigate = useNavigate();
@@ -70,38 +57,6 @@ const OnboardingForm = () => {
     loadUserProfile();
   }, [toast]);
   
-  const steps: FormStep[] = [
-    {
-      title: "Let's get to know you",
-      fields: [
-        { name: 'name', label: 'Your Name', type: 'text', placeholder: 'Enter your full name', required: true },
-        { name: 'age', label: 'Your Age', type: 'number', placeholder: 'Enter your age', required: true }
-      ]
-    },
-    {
-      title: "Let's talk about your finances",
-      fields: [
-        { name: 'savings', label: 'Current Savings (₹)', type: 'number', placeholder: 'Enter current savings amount', required: true },
-        { name: 'monthlyInvestmentCapacity', label: 'Monthly Investment Capacity (₹)', type: 'number', placeholder: 'Enter amount you can invest monthly', required: true }
-      ]
-    },
-    {
-      title: "Tell us about your life goals",
-      fields: [
-        { name: 'relationshipStatus', label: 'Relationship Status', type: 'select', placeholder: 'Select your status', options: ['Single', 'Married', 'In a relationship'], required: true },
-        { name: 'hasKids', label: 'Do you have children?', type: 'select', placeholder: 'Select an option', options: ['Yes', 'No', 'Planning for children'], required: true }
-      ]
-    },
-    {
-      title: "Planning for the future",
-      fields: [
-        { name: 'retirementAge', label: 'Desired Retirement Age', type: 'number', placeholder: 'At what age do you want to retire?', required: true },
-        { name: 'purchasePlans', label: 'Major Purchase Plans', type: 'select', placeholder: 'Select planned purchases', options: ['Home', 'Car', 'Both', 'None'], required: true },
-        { name: 'riskTolerance', label: 'Risk Tolerance', type: 'select', placeholder: 'Select your risk tolerance', options: ['Conservative', 'Moderate', 'Aggressive'], required: true }
-      ]
-    }
-  ];
-  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
@@ -114,13 +69,13 @@ const OnboardingForm = () => {
   };
 
   const handleNext = async () => {
-    const currentFields = steps[currentStep].fields;
+    const currentFields = formSteps[currentStep].fields;
     const isValid = currentFields.every(field => 
       !field.required || formData[field.name as keyof typeof formData]
     );
     
     if (isValid) {
-      if (currentStep < steps.length - 1) {
+      if (currentStep < formSteps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
         // Final step - submit profile
@@ -173,97 +128,25 @@ const OnboardingForm = () => {
     }
   };
   
-  const currentForm = steps[currentStep];
-  
   if (isLoading) {
-    return (
-      <GlassCard className="w-full max-w-md mx-auto">
-        <div className="flex flex-col items-center justify-center py-8">
-          <div className="w-8 h-8 border-t-2 border-b-2 border-primary rounded-full animate-spin mb-4"></div>
-          <p className="text-muted-foreground">Loading your profile...</p>
-        </div>
-      </GlassCard>
-    );
+    return <FormLoading />;
   }
   
   return (
     <GlassCard className="w-full max-w-md mx-auto">
-      <div className="mb-6">
-        <AnimatedText 
-          text={currentForm.title} 
-          element="h2"
-          className="text-xl font-semibold mb-1" 
-        />
-        
-        <div className="flex space-x-1 mt-4">
-          {steps.map((_, index) => (
-            <div 
-              key={index} 
-              className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-                index === currentStep ? 'bg-primary' : 
-                index < currentStep ? 'bg-primary/60' : 'bg-white/10'
-              }`} 
-            />
-          ))}
-        </div>
-      </div>
+      <FormNavigation 
+        currentStep={currentStep} 
+        totalSteps={formSteps.length}
+        isSubmitting={isSubmitting}
+        onNext={handleNext}
+        hasExistingProfile={!!formData.id}
+      />
       
-      <div className="space-y-4">
-        {currentForm.fields.map((field) => (
-          <div key={field.name} className="space-y-2 animate-fade-in">
-            <Label htmlFor={field.name}>{field.label}</Label>
-            
-            {field.type === 'select' ? (
-              <select
-                id={field.name}
-                name={field.name}
-                value={formData[field.name as keyof typeof formData] as string || ''}
-                onChange={handleChange}
-                className="w-full h-10 px-3 rounded-md border border-input bg-background/50 text-foreground"
-                required={field.required}
-              >
-                <option value="">{field.placeholder}</option>
-                {field.options?.map((option) => (
-                  <option key={option} value={option.toLowerCase()}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <Input
-                id={field.name}
-                name={field.name}
-                type={field.type}
-                placeholder={field.placeholder}
-                value={formData[field.name as keyof typeof formData] as string || ''}
-                onChange={handleChange}
-                required={field.required}
-                className="bg-background/50"
-              />
-            )}
-          </div>
-        ))}
-      </div>
-      
-      <div className="mt-8 flex justify-end">
-        <Button 
-          onClick={handleNext}
-          className="group"
-          disabled={isSubmitting}
-        >
-          {currentStep < steps.length - 1 ? (
-            <>
-              Next
-              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </>
-          ) : (
-            <>
-              {formData.id ? 'Update' : 'Complete'}
-              <CheckCircle2 className="ml-2 w-4 h-4" />
-            </>
-          )}
-        </Button>
-      </div>
+      <FormStep 
+        step={formSteps[currentStep]} 
+        formData={formData} 
+        onChange={handleChange} 
+      />
     </GlassCard>
   );
 };
