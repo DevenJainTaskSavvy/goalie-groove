@@ -7,6 +7,8 @@ import GoalCard from '@/components/dashboard/GoalCard';
 import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/services/api';
+import { addGoal } from '@/services/goalService';
+import { useToast } from '@/hooks/use-toast';
 
 interface TopGoalsSectionProps {
   goals: Goal[];
@@ -19,6 +21,56 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
   onDeleteGoal,
   onEditGoal
 }) => {
+  const { toast } = useToast();
+
+  const handleFinanceGoal = async (goalId: string, goalTitle: string, remainingAmount: number) => {
+    try {
+      // Get the original goal to reference its data
+      const originalGoal = goals.find(goal => goal.id === goalId);
+      
+      if (!originalGoal) {
+        toast({
+          title: "Error",
+          description: "Goal not found",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Create a new loan goal based on the original goal
+      const loanGoal: Omit<Goal, 'id' | 'progress'> = {
+        title: `Loan for ${goalTitle}`,
+        targetAmount: remainingAmount,
+        currentAmount: 0,
+        timeline: 2, // Default timeline of 2 years for loans
+        category: "Other" as any,
+        monthlyContribution: remainingAmount / 24, // Monthly payment for 2 years
+        riskLevel: "conservative",
+        description: `Loan taken to finance ${goalTitle}`
+      };
+      
+      // Add the loan goal to the database
+      await addGoal(loanGoal);
+      
+      // Show success message
+      toast({
+        title: "Financing Applied",
+        description: `Your goal "${goalTitle}" has been financed and a new loan goal has been created.`,
+      });
+      
+      // Refresh the page to show the updated goals
+      window.location.reload();
+      
+    } catch (error) {
+      console.error("Error financing goal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to finance goal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <>
       <div className="mb-6 flex justify-between items-center">
@@ -50,6 +102,7 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
               category={goal.category}
               onDelete={onDeleteGoal}
               onEdit={onEditGoal}
+              onFinance={handleFinanceGoal}
             />
           ))}
         </div>
