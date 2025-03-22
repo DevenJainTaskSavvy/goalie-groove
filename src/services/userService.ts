@@ -41,7 +41,7 @@ export const saveUserProfile = async (profile: UserProfile): Promise<UserProfile
           retirement_age: profile.retirementAge,
           purchase_plans: profile.purchasePlans,
           risk_tolerance: profile.riskTolerance,
-          updated_at: new Date()
+          updated_at: new Date().toISOString()
         })
         .eq('id', userId);
         
@@ -65,6 +65,9 @@ export const saveUserProfile = async (profile: UserProfile): Promise<UserProfile
         
       if (insertError) throw insertError;
     }
+    
+    // Set the id in the profile object before returning it
+    profile.id = userId;
     
     // Also save to localStorage as fallback
     localStorage.setItem('growvest_user_profile', JSON.stringify(profile));
@@ -113,6 +116,7 @@ export const getUserProfile = async (): Promise<UserProfile | null> => {
     
     // Map Supabase data to UserProfile format
     const profile: UserProfile = {
+      id: data.id,
       name: data.name,
       age: data.age,
       savings: data.savings,
