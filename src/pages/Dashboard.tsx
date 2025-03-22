@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
@@ -5,16 +6,22 @@ import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
 import InvestmentBreakdown from '@/components/dashboard/InvestmentBreakdown';
 import GoalCard from '@/components/dashboard/GoalCard';
+import FinancialMetrics from '@/components/dashboard/FinancialMetrics';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Award, Calendar, Sparkles, Loader2 } from 'lucide-react';
 import { getUserProfile, getGoals, formatCurrency, deleteGoal } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Goal } from '@/types/finance';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [initialInvestment, setInitialInvestment] = useState(0);
+  const [remainingPrincipal, setRemainingPrincipal] = useState(0);
+  const [totalMonthlyCommitment, setTotalMonthlyCommitment] = useState(0);
+  const [actualMonthlyPayment, setActualMonthlyPayment] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -34,11 +41,32 @@ const Dashboard = () => {
         const profile = await getUserProfile();
         if (profile) {
           setUserName(profile.name.split(' ')[0]); // Get first name
+          
+          // Set initial investment from savings
+          const savings = profile.savings || 0;
+          setInitialInvestment(savings);
+          
+          // Calculate the remaining principal (savings minus current investments in goals)
+          let totalInvested = 0;
+          
+          // Fetch goals
+          const goalsData = await getGoals();
+          setGoals(goalsData.slice(0, 3)); // Get top 3 goals for display
+          
+          // Calculate total monthly commitment and total invested amount
+          let monthlyCommitmentTotal = 0;
+          goalsData.forEach(goal => {
+            monthlyCommitmentTotal += goal.monthlyContribution;
+            totalInvested += goal.currentAmount;
+          });
+          
+          setTotalMonthlyCommitment(monthlyCommitmentTotal);
+          setRemainingPrincipal(Math.max(0, savings - totalInvested));
+          
+          // Set actual monthly payment (for now, assume 80% of commitment as an example)
+          // In a real app, this would come from actual payment records
+          setActualMonthlyPayment(profile.monthlyInvestmentCapacity || 0);
         }
-        
-        // Fetch goals
-        const goalsData = await getGoals();
-        setGoals(goalsData.slice(0, 3)); // Get top 3 goals for display
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
@@ -107,6 +135,16 @@ const Dashboard = () => {
               </Button>
             </Link>
           </div>
+        </div>
+        
+        {/* Financial Metrics Section */}
+        <div className="mb-8">
+          <FinancialMetrics
+            initialInvestment={initialInvestment}
+            remainingPrincipal={remainingPrincipal}
+            totalMonthlyCommitment={totalMonthlyCommitment}
+            actualMonthlyPayment={actualMonthlyPayment}
+          />
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
