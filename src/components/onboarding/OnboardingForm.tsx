@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
 import { useToast } from '@/hooks/use-toast';
-import { saveUserProfile } from '@/services/api';
+import { saveUserProfile, getUserProfile } from '@/services/api';
 import { UserProfile } from '@/types/finance';
 
 interface FormStep {
@@ -28,6 +28,7 @@ const OnboardingForm = () => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<Partial<UserProfile>>({
     name: '',
     age: undefined,
@@ -39,6 +40,35 @@ const OnboardingForm = () => {
     purchasePlans: 'none',
     riskTolerance: 'moderate'
   });
+  
+  // Load existing profile data when component mounts
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        setIsLoading(true);
+        const profile = await getUserProfile();
+        
+        if (profile) {
+          setFormData(profile);
+          toast({
+            title: 'Profile loaded',
+            description: 'Your existing profile data has been loaded'
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load your profile',
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadUserProfile();
+  }, [toast]);
   
   const steps: FormStep[] = [
     {
@@ -145,6 +175,17 @@ const OnboardingForm = () => {
   
   const currentForm = steps[currentStep];
   
+  if (isLoading) {
+    return (
+      <GlassCard className="w-full max-w-md mx-auto">
+        <div className="flex flex-col items-center justify-center py-8">
+          <div className="w-8 h-8 border-t-2 border-b-2 border-primary rounded-full animate-spin mb-4"></div>
+          <p className="text-muted-foreground">Loading your profile...</p>
+        </div>
+      </GlassCard>
+    );
+  }
+  
   return (
     <GlassCard className="w-full max-w-md mx-auto">
       <div className="mb-6">
@@ -217,7 +258,7 @@ const OnboardingForm = () => {
             </>
           ) : (
             <>
-              Complete
+              {formData.id ? 'Update' : 'Complete'}
               <CheckCircle2 className="ml-2 w-4 h-4" />
             </>
           )}
