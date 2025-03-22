@@ -1,3 +1,4 @@
+
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -76,7 +77,7 @@ const SignUp = () => {
       description: "Welcome to GrowVest. Let's set up your profile.",
     });
     
-    // Store user details (in real app, would be a proper auth system)
+    // Store user details in localStorage
     localStorage.setItem('growvest_user', JSON.stringify(signupForm));
     
     // Call the login function to update auth state
@@ -112,7 +113,7 @@ const SignUp = () => {
       phone: loginForm.phone || "1234567890"
     };
     
-    // Store the mock user data
+    // Store the mock user data in localStorage
     localStorage.setItem('growvest_user', JSON.stringify(mockUser));
     
     // Call the login function to update auth state

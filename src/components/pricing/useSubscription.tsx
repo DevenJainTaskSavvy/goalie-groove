@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 export type Subscription = {
   id: string;
@@ -21,34 +20,30 @@ export const useSubscription = () => {
         setLoading(true);
         
         // Check if user is authenticated
-        const { data: { session } } = await supabase.auth.getSession();
+        const userString = localStorage.getItem('growvest_user');
         
-        if (!session) {
+        if (!userString) {
           setSubscription(null);
           return;
         }
         
-        // Get user subscription using the function we created
-        const { data, error } = await supabase.rpc('get_user_subscription');
+        // Get user subscription from localStorage
+        const subString = localStorage.getItem('growvest_subscription');
         
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          setSubscription(data[0] as Subscription);
+        if (subString) {
+          setSubscription(JSON.parse(subString) as Subscription);
         } else {
           // If no subscription exists, create a free one
-          const { data: newSub, error: insertError } = await supabase
-            .from('subscriptions')
-            .insert({
-              user_id: session.user.id,
-              plan: 'free',
-              status: 'active'
-            })
-            .select()
-            .single();
+          const newSub: Subscription = {
+            id: crypto.randomUUID(),
+            plan: 'free',
+            status: 'active',
+            created_at: new Date().toISOString(),
+            expires_at: null
+          };
           
-          if (insertError) throw insertError;
-          setSubscription(newSub as Subscription);
+          localStorage.setItem('growvest_subscription', JSON.stringify(newSub));
+          setSubscription(newSub);
         }
       } catch (err) {
         console.error('Error fetching subscription:', err);
@@ -60,15 +55,17 @@ export const useSubscription = () => {
 
     fetchSubscription();
     
-    // Subscribe to auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+    // Listen for auth changes (sign in/out)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'growvest_user') {
         fetchSubscription();
       }
-    });
-
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
     return () => {
-      authListener.subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 

@@ -1,7 +1,6 @@
 
 import { Goal } from '@/types/finance';
 import { getUserProfile } from '../userService';
-import { supabase } from '@/integrations/supabase/client';
 import { mapToGoal } from './goalMappers';
 
 /**
@@ -19,39 +18,32 @@ export const updateGoal = async (goalData: Partial<Goal>): Promise<Goal> => {
       throw new Error("User profile not found");
     }
     
-    const { data: user } = await supabase.auth.getUser();
+    // Get all existing goals
+    const goalsString = localStorage.getItem('growvest_goals');
     
-    if (!user || !user.user) {
-      throw new Error("Not authenticated");
+    if (!goalsString) {
+      throw new Error("No goals found");
     }
     
-    // Get the existing goal
-    const { data: existingGoal, error: fetchError } = await supabase
-      .from('financial_goals')
-      .select('*')
-      .eq('id', goalData.id)
-      .eq('user_id', user.user.id)
-      .single();
+    const goals: Goal[] = JSON.parse(goalsString);
     
-    if (fetchError) throw fetchError;
-    if (!existingGoal) throw new Error("Goal not found");
+    // Find the goal to update
+    const existingGoalIndex = goals.findIndex(goal => goal.id === goalData.id);
+    
+    if (existingGoalIndex === -1) {
+      throw new Error("Goal not found");
+    }
+    
+    const existingGoal = goals[existingGoalIndex];
     
     // Calculate if the user has enough monthly investment capacity (if changing contribution)
     if (goalData.monthlyContribution !== undefined && 
-        goalData.monthlyContribution !== existingGoal.monthly_contribution) {
+        goalData.monthlyContribution !== existingGoal.monthlyContribution) {
       
-      // Get all other goals
-      const { data: otherGoals, error: goalsError } = await supabase
-        .from('financial_goals')
-        .select('monthly_contribution')
-        .eq('user_id', user.user.id)
-        .neq('id', goalData.id);
-      
-      if (goalsError) throw goalsError;
-      
-      const totalOtherGoals = otherGoals
-        ? otherGoals.reduce((sum, goal) => sum + goal.monthly_contribution, 0)
-        : 0;
+      // Calculate total contribution of other goals
+      const totalOtherGoals = goals
+        .filter(goal => goal.id !== goalData.id)
+        .reduce((sum, goal) => sum + goal.monthlyContribution, 0);
       
       if (totalOtherGoals + goalData.monthlyContribution > userProfile.monthlyInvestmentCapacity) {
         throw new Error("Updating this goal would exceed your monthly investment capacity");
@@ -62,37 +54,25 @@ export const updateGoal = async (goalData: Partial<Goal>): Promise<Goal> => {
     let progress = existingGoal.progress;
     
     if ((goalData.targetAmount !== undefined || goalData.currentAmount !== undefined)) {
-      const targetAmount = goalData.targetAmount !== undefined ? goalData.targetAmount : existingGoal.target_amount;
-      const currentAmount = goalData.currentAmount !== undefined ? goalData.currentAmount : existingGoal.current_amount;
+      const targetAmount = goalData.targetAmount !== undefined ? goalData.targetAmount : existingGoal.targetAmount;
+      const currentAmount = goalData.currentAmount !== undefined ? goalData.currentAmount : existingGoal.currentAmount;
       progress = Math.min(100, Math.round((currentAmount / targetAmount) * 100));
     }
     
-    // Prepare update data
-    const updateData: any = {
-      updated_at: new Date().toISOString()
+    // Create updated goal
+    const updatedGoal: Goal = {
+      ...existingGoal,
+      ...goalData,
+      progress
     };
     
-    if (goalData.title !== undefined) updateData.title = goalData.title;
-    if (goalData.targetAmount !== undefined) updateData.target_amount = goalData.targetAmount;
-    if (goalData.currentAmount !== undefined) updateData.current_amount = goalData.currentAmount;
-    if (goalData.timeline !== undefined) updateData.timeline = goalData.timeline;
-    if (goalData.category !== undefined) updateData.category = goalData.category;
-    if (goalData.monthlyContribution !== undefined) updateData.monthly_contribution = goalData.monthlyContribution;
-    if (goalData.riskLevel !== undefined) updateData.risk_level = goalData.riskLevel;
-    if (goalData.description !== undefined) updateData.description = goalData.description;
-    updateData.progress = progress;
+    // Update goal in the list
+    goals[existingGoalIndex] = updatedGoal;
     
-    // Update the goal
-    const { data, error } = await supabase
-      .from('financial_goals')
-      .update(updateData)
-      .eq('id', goalData.id)
-      .select()
-      .single();
+    // Save to localStorage
+    localStorage.setItem('growvest_goals', JSON.stringify(goals));
     
-    if (error) throw error;
-    
-    return mapToGoal(data);
+    return updatedGoal;
   } catch (error) {
     console.error('Error updating goal:', error);
     throw error;

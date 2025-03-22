@@ -1,7 +1,6 @@
 
 import { Goal } from '@/types/finance';
 import { getUserProfile } from '../userService';
-import { supabase } from '@/integrations/supabase/client';
 import { mapToGoal } from './goalMappers';
 
 /**
@@ -15,24 +14,12 @@ export const addGoal = async (goalData: Omit<Goal, 'id' | 'progress'>): Promise<
       throw new Error("User profile not found");
     }
     
-    const { data: user } = await supabase.auth.getUser();
-    
-    if (!user || !user.user) {
-      throw new Error("Not authenticated");
-    }
-    
     // Get all existing goals to check monthly investment capacity
-    const { data: existingGoals, error: fetchError } = await supabase
-      .from('financial_goals')
-      .select('monthly_contribution')
-      .eq('user_id', user.user.id);
-    
-    if (fetchError) throw fetchError;
+    const existingGoalsString = localStorage.getItem('growvest_goals');
+    const existingGoals: Goal[] = existingGoalsString ? JSON.parse(existingGoalsString) : [];
     
     // Calculate if the user has enough monthly investment capacity
-    const currentTotalMonthly = existingGoals 
-      ? existingGoals.reduce((sum, goal) => sum + goal.monthly_contribution, 0) 
-      : 0;
+    const currentTotalMonthly = existingGoals.reduce((sum, goal) => sum + goal.monthlyContribution, 0);
     const newMonthlyRequired = goalData.monthlyContribution;
     
     if (currentTotalMonthly + newMonthlyRequired > userProfile.monthlyInvestmentCapacity) {
@@ -41,27 +28,18 @@ export const addGoal = async (goalData: Omit<Goal, 'id' | 'progress'>): Promise<
     
     const progress = Math.min(100, Math.round((goalData.currentAmount / goalData.targetAmount) * 100));
     
-    // Insert the new goal
-    const { data, error } = await supabase
-      .from('financial_goals')
-      .insert({
-        user_id: user.user.id,
-        title: goalData.title,
-        target_amount: goalData.targetAmount,
-        current_amount: goalData.currentAmount,
-        timeline: goalData.timeline,
-        category: goalData.category,
-        monthly_contribution: goalData.monthlyContribution,
-        risk_level: goalData.riskLevel,
-        progress: progress,
-        description: goalData.description
-      })
-      .select()
-      .single();
+    // Create new goal with generated ID
+    const newGoal: Goal = {
+      id: crypto.randomUUID(),
+      ...goalData,
+      progress: progress
+    };
     
-    if (error) throw error;
+    // Add to existing goals and save to localStorage
+    existingGoals.push(newGoal);
+    localStorage.setItem('growvest_goals', JSON.stringify(existingGoals));
     
-    return mapToGoal(data);
+    return newGoal;
   } catch (error) {
     console.error('Error adding goal:', error);
     throw error;
@@ -73,21 +51,13 @@ export const addGoal = async (goalData: Omit<Goal, 'id' | 'progress'>): Promise<
  */
 export const getGoals = async (): Promise<Goal[]> => {
   try {
-    const { data: user } = await supabase.auth.getUser();
+    const goalsString = localStorage.getItem('growvest_goals');
     
-    if (!user || !user.user) {
+    if (!goalsString) {
       return [];
     }
     
-    const { data, error } = await supabase
-      .from('financial_goals')
-      .select('*')
-      .eq('user_id', user.user.id)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    
-    return data.map(mapToGoal);
+    return JSON.parse(goalsString) as Goal[];
   } catch (error) {
     console.error('Error fetching goals:', error);
     return [];
@@ -99,19 +69,16 @@ export const getGoals = async (): Promise<Goal[]> => {
  */
 export const deleteGoal = async (goalId: string): Promise<void> => {
   try {
-    const { data: user } = await supabase.auth.getUser();
+    const goalsString = localStorage.getItem('growvest_goals');
     
-    if (!user || !user.user) {
-      throw new Error("Not authenticated");
+    if (!goalsString) {
+      return;
     }
     
-    const { error } = await supabase
-      .from('financial_goals')
-      .delete()
-      .eq('id', goalId)
-      .eq('user_id', user.user.id);
+    const goals: Goal[] = JSON.parse(goalsString);
+    const updatedGoals = goals.filter(goal => goal.id !== goalId);
     
-    if (error) throw error;
+    localStorage.setItem('growvest_goals', JSON.stringify(updatedGoals));
   } catch (error) {
     console.error('Error deleting goal:', error);
     throw error;
