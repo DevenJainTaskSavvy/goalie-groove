@@ -169,7 +169,7 @@ const MonthlyGoalAllocations: React.FC<MonthlyGoalAllocationsProps> = ({
           <div className="grid grid-cols-2 gap-4">
             {goalAllocationData.map((item, index) => (
               <TooltipProvider key={index}>
-                <Tooltip>
+                <TooltipComponent>
                   <TooltipTrigger asChild>
                     <div 
                       className={`flex flex-col space-y-2 p-2 rounded-md transition-colors duration-200 hover:bg-white/5 cursor-pointer ${activeIndex === index ? 'bg-white/5' : ''}`}
@@ -208,7 +208,7 @@ const MonthlyGoalAllocations: React.FC<MonthlyGoalAllocationsProps> = ({
                   <TooltipContent side="right">
                     <p>{getProgressMessage(item.progress || 0, item.name)}</p>
                   </TooltipContent>
-                </Tooltip>
+                </TooltipComponent>
               </TooltipProvider>
             ))}
           </div>
