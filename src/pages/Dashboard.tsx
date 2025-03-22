@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
-import GlassCard from '@/components/ui/GlassCard';
-import AnimatedText from '@/components/ui/AnimatedText';
-import GoalCard from '@/components/dashboard/GoalCard';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, Wallet, Loader2, DollarSign, PieChart } from 'lucide-react';
 import { getUserProfile, getGoals, formatCurrency, deleteGoal } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Goal } from '@/types/finance';
-import { PieChart as RechartsChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+
+// Import our new components
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import DashboardLoading from '@/components/dashboard/DashboardLoading';
+import FinancialOverviewCards from '@/components/dashboard/FinancialOverviewCards';
+import MonthlyGoalAllocations from '@/components/dashboard/MonthlyGoalAllocations';
+import TopGoalsSection from '@/components/dashboard/TopGoalsSection';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -90,195 +91,35 @@ const Dashboard = () => {
   };
   
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
-      </div>
-    );
+    return <DashboardLoading />;
   }
-  
-  // Calculate remaining monthly capacity
-  const remainingCapacity = Math.max(0, monthlyCapacity - monthlySpent);
   
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
       
       <main className="container pt-24 px-4 mx-auto">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <AnimatedText 
-              text={`Welcome back, ${userName || 'Investor'}`}
-              element="h1"
-              className="text-3xl font-bold mb-2" 
-            />
-            <p className="text-muted-foreground">Your financial overview and goal progress</p>
-          </div>
-          
-          <div className="mt-4 md:mt-0 flex space-x-4">
-            <Link to="/goals/new">
-              <Button variant="outline" className="gap-2">
-                <PlusCircle className="h-4 w-4" />
-                Add Goal
-              </Button>
-            </Link>
-          </div>
-        </div>
+        <DashboardHeader userName={userName} />
         
         {/* Financial Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <GlassCard className="p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 p-3 rounded-full bg-blue-500/20 mr-4">
-                <Wallet className="h-6 w-6 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Initial Savings</p>
-                <h3 className="text-2xl font-bold">{formatCurrency(initialSavings)}</h3>
-              </div>
-            </div>
-          </GlassCard>
-          
-          <GlassCard className="p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 p-3 rounded-full bg-green-500/20 mr-4">
-                <DollarSign className="h-6 w-6 text-green-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Monthly Investment Capacity</p>
-                <h3 className="text-2xl font-bold">{formatCurrency(monthlyCapacity)}</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Remaining: {formatCurrency(remainingCapacity)}
-                </p>
-              </div>
-            </div>
-          </GlassCard>
-          
-          <GlassCard className="p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 p-3 rounded-full bg-purple-500/20 mr-4">
-                <PieChart className="h-6 w-6 text-purple-400" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Monthly Goal Allocations</p>
-                <h3 className="text-2xl font-bold">{formatCurrency(monthlySpent)}</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {(monthlySpent / monthlyCapacity * 100).toFixed(1)}% of capacity
-                </p>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
+        <FinancialOverviewCards 
+          initialSavings={initialSavings}
+          monthlyCapacity={monthlyCapacity}
+          monthlySpent={monthlySpent}
+        />
         
-        <GlassCard className="mb-8">
-          <div className="p-6 border-b border-white/10">
-            <h3 className="text-xl font-medium mb-1">Monthly Goal Allocations</h3>
-            <p className="text-sm text-muted-foreground">How your monthly investment is distributed</p>
-          </div>
-          
-          <div className="p-6">
-            {goalAllocationData.length > 0 ? (
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsChart>
-                    <Pie
-                      data={goalAllocationData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {goalAllocationData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </RechartsChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No goals found to display allocations.</p>
-                <Link to="/goals/new">
-                  <Button className="mt-4 gap-2">
-                    <PlusCircle className="h-4 w-4" />
-                    Create your first goal
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
-          
-          {goalAllocationData.length > 0 && (
-            <div className="px-6 pb-6">
-              <div className="grid grid-cols-2 gap-4">
-                {goalAllocationData.map((item, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div 
-                      className="h-3 w-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <div className="text-sm truncate">{item.name}</div>
-                    <div className="text-sm ml-auto font-medium">{item.displayValue}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </GlassCard>
+        {/* Monthly Goal Allocations */}
+        <MonthlyGoalAllocations goalAllocationData={goalAllocationData} />
         
-        <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Your Financial Goals</h2>
-          <Link to="/goals" className="text-sm text-primary hover:underline">View all</Link>
-        </div>
-        
-        {goals.length === 0 ? (
-          <GlassCard className="text-center py-12">
-            <p className="text-muted-foreground">You haven't created any goals yet.</p>
-            <Link to="/goals/new">
-              <Button className="mt-4 gap-2">
-                <PlusCircle className="h-4 w-4" />
-                Create your first goal
-              </Button>
-            </Link>
-          </GlassCard>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {goals.map((goal) => (
-              <GoalCard 
-                key={goal.id}
-                id={goal.id}
-                title={goal.title}
-                targetAmount={formatCurrency(goal.targetAmount)}
-                currentAmount={formatCurrency(goal.currentAmount)}
-                timeline={`${goal.timeline} years`}
-                progress={goal.progress}
-                category={goal.category}
-                onDelete={handleDeleteGoal}
-                onEdit={handleEditGoal}
-              />
-            ))}
-          </div>
-        )}
+        {/* Financial Goals */}
+        <TopGoalsSection 
+          goals={goals}
+          onDeleteGoal={handleDeleteGoal}
+          onEditGoal={handleEditGoal}
+        />
       </main>
     </div>
   );
-};
-
-// Custom tooltip for pie chart
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-background/95 border border-border p-2 rounded-lg text-xs shadow-xl">
-        <p className="font-medium">{payload[0].name}</p>
-        <p className="text-primary">{payload[0].payload.displayValue}</p>
-      </div>
-    );
-  }
-  return null;
 };
 
 export default Dashboard;
