@@ -60,7 +60,8 @@ const Dashboard = () => {
           name: goal.title,
           value: goal.monthlyContribution,
           color: COLORS[index % COLORS.length],
-          displayValue: formatCurrency(goal.monthlyContribution)
+          displayValue: formatCurrency(goal.monthlyContribution),
+          progress: Math.round((goal.currentAmount / goal.targetAmount) * 100)
         }));
         setGoalAllocationData(allocationData);
       } catch (error) {
