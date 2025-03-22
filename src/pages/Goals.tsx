@@ -12,6 +12,7 @@ import { getGoals, formatCurrency, deleteGoal, updateGoal } from '@/services/api
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import EditGoalDialog from '@/components/dashboard/EditGoalDialog';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 const Goals = () => {
   const [filter, setFilter] = useState<GoalCategory | 'All'>('All');
@@ -19,6 +20,7 @@ const Goals = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [goalSizeTab, setGoalSizeTab] = useState<'micro' | 'macro'>('micro');
   const { toast } = useToast();
   
   useEffect(() => {
@@ -36,6 +38,12 @@ const Goals = () => {
     
     fetchGoals();
   }, []);
+  
+  // Consider goals with target amount less than 5,00,000 as micro goals
+  const MICRO_GOAL_THRESHOLD = 500000;
+  
+  const microGoals = goals.filter(goal => goal.targetAmount < MICRO_GOAL_THRESHOLD);
+  const macroGoals = goals.filter(goal => goal.targetAmount >= MICRO_GOAL_THRESHOLD);
   
   const handleDeleteGoal = async (goalId: string) => {
     try {
@@ -90,10 +98,15 @@ const Goals = () => {
     setSelectedGoal(null);
   };
   
-  const filteredGoals = filter === 'All' 
-    ? goals 
-    : goals.filter(goal => goal.category === filter);
-    
+  // Get the appropriate goals based on the current tab and filter
+  const getFilteredGoals = () => {
+    const goalsBySize = goalSizeTab === 'micro' ? microGoals : macroGoals;
+    return filter === 'All' 
+      ? goalsBySize 
+      : goalsBySize.filter(goal => goal.category === filter);
+  };
+  
+  const filteredGoals = getFilteredGoals();
   const categories: (GoalCategory | 'All')[] = ['All', 'Retirement', 'Education', 'Housing', 'Vehicle', 'Travel', 'Other'];
   
   return (
@@ -121,6 +134,16 @@ const Goals = () => {
           </div>
         </div>
         
+        {/* Goal Size Tabs */}
+        <div className="mb-6">
+          <Tabs defaultValue="micro" onValueChange={(value) => setGoalSizeTab(value as 'micro' | 'macro')}>
+            <TabsList className="w-full max-w-[300px] mx-auto grid grid-cols-2">
+              <TabsTrigger value="micro">Micro</TabsTrigger>
+              <TabsTrigger value="macro">Macro</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        
         <GlassCard className="mb-8 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <Filter className="h-5 w-5 mr-2 text-muted-foreground" />
@@ -144,11 +167,15 @@ const Goals = () => {
           </div>
         ) : filteredGoals.length === 0 ? (
           <GlassCard className="text-center py-12">
-            <p className="text-muted-foreground">No goals found in this category.</p>
+            <p className="text-muted-foreground">
+              {goalSizeTab === 'micro' 
+                ? "No micro goals found in this category." 
+                : "No macro goals found in this category."}
+            </p>
             <Link to="/goals/new">
               <Button className="mt-4 gap-2">
                 <PlusCircle className="h-4 w-4" />
-                Create your first goal
+                Create your first {goalSizeTab} goal
               </Button>
             </Link>
           </GlassCard>

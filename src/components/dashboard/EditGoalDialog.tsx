@@ -1,244 +1,249 @@
-
 import React, { useState, useEffect } from 'react';
-import {
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Goal } from '@/types/finance';
+import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Check, Target, CreditCard, Calendar, AlertTriangle } from 'lucide-react';
-import { calculateMonthlyContribution, formatCurrency, getRemainingMonthlyCapacity } from '@/services/api';
-import { Goal, GoalCategory } from '@/types/finance';
-
-const RISK_LEVELS = [
-  { id: 'conservative', label: 'Conservative', description: 'Lower risk, lower returns (6% annually)' },
-  { id: 'moderate', label: 'Moderate', description: 'Balanced risk and returns (10% annually)' },
-  { id: 'aggressive', label: 'Aggressive', description: 'Higher risk, higher returns (14% annually)' }
-];
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { formatCurrency, parseCurrency, calculateMonthlyContribution } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditGoalDialogProps {
   goal: Goal;
-  onSave: (updatedGoal: Partial<Goal>) => void;
+  onSave: (goal: Partial<Goal>) => void;
   onCancel: () => void;
 }
 
 const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, onSave, onCancel }) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
+    id: goal.id,
     title: goal.title,
-    targetAmount: goal.targetAmount.toString(),
-    currentAmount: goal.currentAmount.toString(),
-    timeline: goal.timeline.toString(),
+    targetAmount: formatCurrency(goal.targetAmount),
+    currentAmount: formatCurrency(goal.currentAmount),
+    timeline: goal.timeline,
+    category: goal.category,
     riskLevel: goal.riskLevel,
   });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [remainingCapacity, setRemainingCapacity] = useState(0);
-  const [calculatedContribution, setCalculatedContribution] = useState<number | null>(goal.monthlyContribution);
+  
+  const [monthlyContribution, setMonthlyContribution] = useState<number>(0);
   
   useEffect(() => {
-    // Fetch remaining monthly investment capacity plus current goal's contribution
-    const fetchRemainingCapacity = async () => {
-      try {
-        const capacity = await getRemainingMonthlyCapacity();
-        setRemainingCapacity(capacity + goal.monthlyContribution);
-      } catch (error) {
-        console.error('Failed to fetch remaining capacity:', error);
-      }
-    };
+    // Parse currency values to numbers for calculation
+    const targetAmount = parseCurrency(formData.targetAmount);
+    const currentAmount = parseCurrency(formData.currentAmount);
     
-    fetchRemainingCapacity();
-  }, [goal.monthlyContribution]);
-  
-  useEffect(() => {
-    // Calculate monthly contribution when relevant fields change
-    const calculate = () => {
-      if (
-        formData.targetAmount && 
-        formData.currentAmount && 
-        formData.timeline &&
-        formData.riskLevel
-      ) {
-        const targetAmountNum = Number(formData.targetAmount);
-        const currentAmountNum = Number(formData.currentAmount);
-        const timelineYearsNum = Number(formData.timeline);
-        
-        if (targetAmountNum && currentAmountNum !== undefined && timelineYearsNum) {
-          const monthlyAmount = calculateMonthlyContribution(
-            targetAmountNum,
-            currentAmountNum,
-            timelineYearsNum,
-            formData.riskLevel as 'conservative' | 'moderate' | 'aggressive'
-          );
-          
-          setCalculatedContribution(monthlyAmount);
-        }
-      } else {
-        setCalculatedContribution(null);
-      }
-    };
+    const calculatedContribution = calculateMonthlyContribution(
+      targetAmount,
+      currentAmount,
+      formData.timeline,
+      formData.riskLevel
+    );
     
-    calculate();
-  }, [formData.targetAmount, formData.currentAmount, formData.timeline, formData.riskLevel]);
+    setMonthlyContribution(calculatedContribution);
+  }, [formData]);
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const handleRiskLevelSelect = (riskLevel: 'conservative' | 'moderate' | 'aggressive') => {
-    setFormData(prev => ({ ...prev, riskLevel }));
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
   
   const handleSubmit = () => {
-    if (!calculatedContribution) {
-      return;
+    try {
+      // Parse currency strings back to numbers
+      const parsedTargetAmount = parseCurrency(formData.targetAmount);
+      const parsedCurrentAmount = parseCurrency(formData.currentAmount);
+      
+      // Validate target amount and current amount
+      if (isNaN(parsedTargetAmount) || isNaN(parsedCurrentAmount)) {
+        toast({
+          title: "Error",
+          description: "Target amount and current amount must be valid numbers.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (parsedTargetAmount <= 0) {
+        toast({
+          title: "Error",
+          description: "Target amount must be greater than zero.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      if (parsedCurrentAmount < 0) {
+        toast({
+          title: "Error",
+          description: "Current amount cannot be negative.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Validate timeline
+      if (formData.timeline <= 0) {
+        toast({
+          title: "Error",
+          description: "Timeline must be greater than zero.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Calculate monthly contribution
+      const calculatedContribution = calculateMonthlyContribution(
+        parsedTargetAmount,
+        parsedCurrentAmount,
+        formData.timeline,
+        formData.riskLevel
+      );
+      
+      // Construct the updated goal object
+      const updatedGoal: Partial<Goal> = {
+        id: formData.id,
+        title: formData.title,
+        targetAmount: parsedTargetAmount,
+        currentAmount: parsedCurrentAmount,
+        timeline: formData.timeline,
+        category: formData.category,
+        riskLevel: formData.riskLevel,
+        monthlyContribution: calculatedContribution,
+        progress: Math.min(100, Math.round((parsedCurrentAmount / parsedTargetAmount) * 100)),
+      };
+      
+      onSave(updatedGoal);
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update goal. Please check your inputs and try again.",
+        variant: "destructive"
+      });
     }
-    
-    setIsSubmitting(true);
-    
-    const updatedGoal: Partial<Goal> = {
-      id: goal.id,
-      title: formData.title,
-      targetAmount: Number(formData.targetAmount),
-      currentAmount: Number(formData.currentAmount),
-      timeline: Number(formData.timeline),
-      riskLevel: formData.riskLevel as 'conservative' | 'moderate' | 'aggressive',
-      monthlyContribution: calculatedContribution,
-      // Calculate progress
-      progress: Math.min(100, Math.round((Number(formData.currentAmount) / Number(formData.targetAmount)) * 100))
-    };
-    
-    onSave(updatedGoal);
-    setIsSubmitting(false);
   };
-  
+
   return (
-    <DialogContent className="sm:max-w-[500px]">
+    <DialogContent className="sm:max-w-[425px]">
       <DialogHeader>
         <DialogTitle>Edit Goal</DialogTitle>
+        <DialogDescription>
+          Make changes to your financial goal here. Click save when you're done.
+        </DialogDescription>
       </DialogHeader>
-      
-      <div className="space-y-4 py-4">
-        <div>
-          <Label htmlFor="title">Goal Name</Label>
+      <div className="grid gap-4 py-4">
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="title" className="text-right">
+            Title
+          </Label>
           <Input
+            type="text"
             id="title"
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className="mt-1"
+            className="col-span-3"
           />
         </div>
-        
-        <div>
-          <Label htmlFor="targetAmount">Target Amount (₹)</Label>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="targetAmount" className="text-right">
+            Target Amount
+          </Label>
           <Input
             id="targetAmount"
             name="targetAmount"
             value={formData.targetAmount}
             onChange={handleChange}
-            className="mt-1"
-            type="number"
+            className="col-span-3"
           />
         </div>
-        
-        <div>
-          <Label htmlFor="currentAmount">Current Amount (₹)</Label>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="currentAmount" className="text-right">
+            Current Amount
+          </Label>
           <Input
             id="currentAmount"
             name="currentAmount"
             value={formData.currentAmount}
             onChange={handleChange}
-            className="mt-1"
-            type="number"
+            className="col-span-3"
           />
         </div>
-        
-        <div>
-          <Label htmlFor="timeline">Timeline (years)</Label>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="timeline" className="text-right">
+            Timeline (Years)
+          </Label>
           <Input
+            type="number"
             id="timeline"
             name="timeline"
             value={formData.timeline}
-            onChange={handleChange}
-            className="mt-1"
-            type="number"
+            onChange={(e) => {
+              const value = parseInt(e.target.value, 10);
+              setFormData(prevData => ({
+                ...prevData,
+                timeline: isNaN(value) ? 1 : Math.max(1, value), // Ensure timeline is not less than 1
+              }));
+            }}
+            className="col-span-3"
           />
         </div>
-        
-        <div>
-          <Label className="mb-3 block">Risk Level</Label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {RISK_LEVELS.map(({ id, label, description }) => (
-              <button
-                key={id}
-                type="button"
-                className={`relative p-3 rounded-lg border text-left transition-all ${
-                  formData.riskLevel === id 
-                    ? 'border-primary bg-primary/10' 
-                    : 'border-border hover:border-primary/50 bg-background/40'
-                }`}
-                onClick={() => handleRiskLevelSelect(id)}
-              >
-                <div>
-                  <span className="block font-medium">{label}</span>
-                  <span className="text-xs text-muted-foreground">{description}</span>
-                  
-                  {formData.riskLevel === id && (
-                    <div className="absolute top-2 right-2">
-                      <Check className="h-4 w-4 text-primary" />
-                    </div>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="category" className="text-right">
+            Category
+          </Label>
+          <Select value={formData.category} onValueChange={(value) => setFormData(prevData => ({ ...prevData, category: value as Goal['category'] }))} >
+            <SelectTrigger className="col-span-3">
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Retirement">Retirement</SelectItem>
+              <SelectItem value="Education">Education</SelectItem>
+              <SelectItem value="Housing">Housing</SelectItem>
+              <SelectItem value="Vehicle">Vehicle</SelectItem>
+              <SelectItem value="Travel">Travel</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="riskLevel" className="text-right">
+            Risk Level
+          </Label>
+          <Select value={formData.riskLevel} onValueChange={(value) => setFormData(prevData => ({ ...prevData, riskLevel: value as Goal['riskLevel'] }))}>
+            <SelectTrigger className="col-span-3">
+              <SelectValue placeholder="Select risk level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="conservative">Conservative</SelectItem>
+              <SelectItem value="moderate">Moderate</SelectItem>
+              <SelectItem value="aggressive">Aggressive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="monthlyContribution" className="text-right">
+            Monthly Contribution
+          </Label>
+          <Input
+            type="text"
+            id="monthlyContribution"
+            name="monthlyContribution"
+            value={formatCurrency(monthlyContribution)}
+            className="col-span-3"
+            readOnly
+          />
         </div>
       </div>
-      
-      {calculatedContribution !== null && (
-        <div className={`p-4 rounded-lg ${
-          calculatedContribution > remainingCapacity
-            ? 'bg-red-500/10 border border-red-500/20'
-            : 'bg-green-500/10 border border-green-500/20'
-        }`}>
-          <div className="flex items-start">
-            {calculatedContribution > remainingCapacity ? (
-              <AlertTriangle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
-            ) : (
-              <Check className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
-            )}
-            <div>
-              <p className="font-medium">
-                {calculatedContribution > remainingCapacity
-                  ? 'Exceeds your monthly capacity'
-                  : 'Within your monthly capacity'}
-              </p>
-              <p className="text-sm mt-1">
-                This goal requires <span className="font-semibold">{formatCurrency(calculatedContribution)}</span> monthly contribution.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      
       <DialogFooter>
-        <Button 
-          variant="outline" 
-          onClick={onCancel}
-        >
+        <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button 
-          type="button" 
-          onClick={handleSubmit}
-          disabled={isSubmitting || !calculatedContribution || calculatedContribution > remainingCapacity}
-        >
-          Save Changes
-        </Button>
+        <Button onClick={handleSubmit}>Save</Button>
       </DialogFooter>
     </DialogContent>
   );
