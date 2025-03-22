@@ -6,13 +6,20 @@ import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
 import GoalCard from '@/components/dashboard/GoalCard';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Filter, Loader2 } from 'lucide-react';
+import { PlusCircle, Filter, Loader2, ArrowDownAZ, ArrowUpZA } from 'lucide-react';
 import { GoalCategory, Goal } from '@/types/finance';
 import { getGoals, formatCurrency, deleteGoal, updateGoal } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import EditGoalDialog from '@/components/dashboard/EditGoalDialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Goals = () => {
   const [filter, setFilter] = useState<GoalCategory | 'All'>('All');
@@ -21,6 +28,7 @@ const Goals = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [goalSizeTab, setGoalSizeTab] = useState<'micro' | 'macro'>('micro');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const { toast } = useToast();
   
   useEffect(() => {
@@ -98,16 +106,31 @@ const Goals = () => {
     setSelectedGoal(null);
   };
   
-  // Get the appropriate goals based on the current tab and filter
+  // Different categories for micro and macro goals
+  const microCategories: (GoalCategory | 'All')[] = ['All', 'Travel', 'Electronics', 'Accessories', 'Other'];
+  const macroCategories: (GoalCategory | 'All')[] = ['All', 'Retirement', 'Education', 'Housing', 'Vehicle', 'Other'];
+  
+  // Get the appropriate goals based on the current tab, filter, and sort order
   const getFilteredGoals = () => {
     const goalsBySize = goalSizeTab === 'micro' ? microGoals : macroGoals;
-    return filter === 'All' 
+    const filteredGoals = filter === 'All' 
       ? goalsBySize 
       : goalsBySize.filter(goal => goal.category === filter);
+    
+    // Sort by amount left to achieve (target - current)
+    return filteredGoals.sort((a, b) => {
+      const aRemaining = a.targetAmount - a.currentAmount;
+      const bRemaining = b.targetAmount - b.currentAmount;
+      return sortOrder === 'desc' ? bRemaining - aRemaining : aRemaining - bRemaining;
+    });
   };
   
   const filteredGoals = getFilteredGoals();
-  const categories: (GoalCategory | 'All')[] = ['All', 'Retirement', 'Education', 'Housing', 'Vehicle', 'Travel', 'Other'];
+  const currentCategories = goalSizeTab === 'micro' ? microCategories : macroCategories;
+  
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+  };
   
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -145,19 +168,42 @@ const Goals = () => {
         </div>
         
         <GlassCard className="mb-8 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Filter className="h-5 w-5 mr-2 text-muted-foreground" />
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={filter === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilter(category)}
-                className="text-xs"
-              >
-                {category}
-              </Button>
-            ))}
+          <div className="flex flex-wrap items-center justify-between">
+            <div className="flex flex-wrap items-center gap-2 mb-2 md:mb-0">
+              <Filter className="h-5 w-5 mr-2 text-muted-foreground" />
+              <div className="flex flex-wrap gap-2">
+                {currentCategories.map((category) => (
+                  <Button
+                    key={category}
+                    variant={filter === category ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilter(category)}
+                    className="text-xs"
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleSortOrder}
+              className="flex items-center gap-1"
+            >
+              {sortOrder === 'desc' ? (
+                <>
+                  <ArrowDownAZ className="h-4 w-4" />
+                  <span>Highest Amount Due First</span>
+                </>
+              ) : (
+                <>
+                  <ArrowUpZA className="h-4 w-4" />
+                  <span>Lowest Amount Due First</span>
+                </>
+              )}
+            </Button>
           </div>
         </GlassCard>
         

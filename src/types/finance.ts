@@ -11,7 +11,7 @@ export interface UserProfile {
   riskTolerance?: 'conservative' | 'moderate' | 'aggressive';
 }
 
-export type GoalCategory = 'Retirement' | 'Education' | 'Housing' | 'Vehicle' | 'Travel' | 'Other';
+export type GoalCategory = 'Retirement' | 'Education' | 'Housing' | 'Vehicle' | 'Travel' | 'Electronics' | 'Accessories' | 'Other';
 
 export interface Goal {
   id: string;
