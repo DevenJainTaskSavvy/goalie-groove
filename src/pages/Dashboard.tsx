@@ -4,14 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
 import AnimatedText from '@/components/ui/AnimatedText';
-import InvestmentBreakdown from '@/components/dashboard/InvestmentBreakdown';
 import GoalCard from '@/components/dashboard/GoalCard';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Award, Calendar, Sparkles, Wallet, Loader2, DollarSign, PieChart } from 'lucide-react';
+import { PlusCircle, Wallet, Loader2, DollarSign, PieChart } from 'lucide-react';
 import { getUserProfile, getGoals, formatCurrency, deleteGoal } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { Goal } from '@/types/finance';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { PieChart as RechartsChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const Dashboard = () => {
@@ -23,13 +21,6 @@ const Dashboard = () => {
   const [monthlySpent, setMonthlySpent] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Default investment data (can be enhanced with real data in future)
-  const [investmentData, setInvestmentData] = useState([
-    { name: 'Mutual funds', value: 52.5, color: '#6366f1', displayValue: '₹52.5L' },
-    { name: 'Stocks', value: 5.5, color: '#f43f5e', displayValue: '₹5.5L' },
-    { name: 'Banks', value: 10.4, color: '#10b981', displayValue: '₹10.4L' },
-  ]);
   
   // Monthly allocation by goal
   const [goalAllocationData, setGoalAllocationData] = useState<any[]>([]);
@@ -75,10 +66,6 @@ const Dashboard = () => {
     
     fetchData();
   }, []);
-  
-  // Calculate total investments (for demo purposes)
-  const totalInvestment = investmentData.reduce((sum, item) => sum + item.value, 0);
-  const totalDisplayValue = formatCurrency(totalInvestment * 100000); // Convert lakhs to rupees
   
   const handleDeleteGoal = async (id: string) => {
     try {
@@ -184,75 +171,64 @@ const Dashboard = () => {
           </GlassCard>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div>
-            <InvestmentBreakdown 
-              data={investmentData} 
-              total={totalDisplayValue} 
-              growth="₹20.06L" 
-              isPositive={true} 
-            />
+        <GlassCard className="mb-8">
+          <div className="p-6 border-b border-white/10">
+            <h3 className="text-xl font-medium mb-1">Monthly Goal Allocations</h3>
+            <p className="text-sm text-muted-foreground">How your monthly investment is distributed</p>
           </div>
           
-          <GlassCard>
-            <div className="p-6 border-b border-white/10">
-              <h3 className="text-xl font-medium mb-1">Monthly Goal Allocations</h3>
-              <p className="text-sm text-muted-foreground">How your monthly investment is distributed</p>
-            </div>
-            
-            <div className="p-6">
-              {goalAllocationData.length > 0 ? (
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RechartsChart>
-                      <Pie
-                        data={goalAllocationData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={100}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {goalAllocationData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                    </RechartsChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No goals found to display allocations.</p>
-                  <Link to="/goals/new">
-                    <Button className="mt-4 gap-2">
-                      <PlusCircle className="h-4 w-4" />
-                      Create your first goal
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-            
-            {goalAllocationData.length > 0 && (
-              <div className="px-6 pb-6">
-                <div className="grid grid-cols-2 gap-4">
-                  {goalAllocationData.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <div 
-                        className="h-3 w-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <div className="text-sm truncate">{item.name}</div>
-                      <div className="text-sm ml-auto font-medium">{item.displayValue}</div>
-                    </div>
-                  ))}
-                </div>
+          <div className="p-6">
+            {goalAllocationData.length > 0 ? (
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsChart>
+                    <Pie
+                      data={goalAllocationData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {goalAllocationData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </RechartsChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No goals found to display allocations.</p>
+                <Link to="/goals/new">
+                  <Button className="mt-4 gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    Create your first goal
+                  </Button>
+                </Link>
               </div>
             )}
-          </GlassCard>
-        </div>
+          </div>
+          
+          {goalAllocationData.length > 0 && (
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-2 gap-4">
+                {goalAllocationData.map((item, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div 
+                      className="h-3 w-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <div className="text-sm truncate">{item.name}</div>
+                    <div className="text-sm ml-auto font-medium">{item.displayValue}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </GlassCard>
         
         <div className="mb-6 flex justify-between items-center">
           <h2 className="text-xl font-bold">Your Financial Goals</h2>
