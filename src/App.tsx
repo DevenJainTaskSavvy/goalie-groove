@@ -14,6 +14,7 @@ import SignUp from "./pages/SignUp";
 import NewGoal from "./pages/NewGoal";
 import Pricing from "./pages/Pricing";
 import Community from "./pages/Community";
+import { supabase } from "@/integrations/supabase/client";
 
 // Create authentication context
 export const AuthContext = createContext<{
@@ -29,20 +30,38 @@ export const AuthContext = createContext<{
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Check if user is authenticated from localStorage
+  // Check if user is authenticated from Supabase
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   
   useEffect(() => {
-    const user = localStorage.getItem('growvest_user');
-    setIsAuthenticated(!!user);
+    // Check for current session
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+      
+      // Listen for auth changes
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          setIsAuthenticated(!!session);
+        }
+      );
+      
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    };
+    
+    checkSession();
   }, []);
   
   const login = () => {
+    // This is now handled by Supabase auth state change
     setIsAuthenticated(true);
   };
   
-  const logout = () => {
-    localStorage.removeItem('growvest_user');
+  const logout = async () => {
+    // Sign out from Supabase
+    await supabase.auth.signOut();
     setIsAuthenticated(false);
   };
 
