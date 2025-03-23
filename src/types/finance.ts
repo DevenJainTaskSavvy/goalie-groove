@@ -31,4 +31,5 @@ export interface Goal {
   monthlyContribution: number;
   riskLevel: "conservative" | "moderate" | "aggressive";
   description?: string;
+  monthlyLoanPayment?: number; // Optional property for financed goals
 }

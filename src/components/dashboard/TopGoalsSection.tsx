@@ -49,11 +49,7 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
     setFilteredGoals(nonLoanGoals);
   }, [goals]);
 
-  const handleFinanceGoal = async (
-    goalId: string,
-    goalTitle: string,
-    remainingAmount: number
-  ) => {
+  const handleFinanceGoal = async (goalId: string) => {
     try {
       // Get the original goal to reference its data
       const originalGoal = goals.find((goal) => goal.id === goalId);
@@ -67,7 +63,7 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
         return;
       }
 
-      // Get user profile to check and update initial savings
+      // Get user profile to check monthly investment capacity
       const userProfile = await getUserProfile();
       if (!userProfile) {
         toast({
@@ -78,60 +74,48 @@ const TopGoalsSection: React.FC<TopGoalsSectionProps> = ({
         return;
       }
 
-      // Check if there's enough in initial savings for the loan
-      if (remainingAmount > userProfile.savings) {
+      // Calculate remaining amount needed for the goal
+      const remainingAmount =
+        originalGoal.targetAmount - originalGoal.currentAmount;
+
+      // Calculate monthly loan payment (24-month term)
+      const monthlyLoanPayment = Math.abs(remainingAmount / 24);
+
+      // Check if monthly loan payment exceeds monthly investment capacity
+      if (monthlyLoanPayment > userProfile.monthlyInvestmentCapacity) {
         toast({
-          title: "Insufficient Funds",
-          description:
-            "You don't have enough in your initial savings to cover this loan.",
+          title: "Cannot Finance Goal",
+          description: `Monthly loan payment of ₹${monthlyLoanPayment.toFixed(
+            2
+          )} exceeds your monthly investment capacity of ₹${userProfile.monthlyInvestmentCapacity.toFixed(
+            2
+          )}.`,
           variant: "destructive",
         });
         return;
       }
 
-      // Create a new loan goal based on the original goal
-      const loanGoal: Omit<Goal, "id" | "progress"> = {
-        title: `Loan for ${goalTitle}`,
-        targetAmount: remainingAmount,
-        currentAmount: 0,
-        timeline: 2, // Default timeline of 2 years for loans
-        category: "Other" as any,
-        monthlyContribution: Math.abs(remainingAmount / 24), // Ensure positive monthly payment
-        riskLevel: "conservative",
-        description: `Loan taken to finance ${goalTitle}`,
-      };
-
-      // Add the loan goal to the database
-      await addGoal(loanGoal);
-
-      // Update user's initial savings to account for the loan
-      const updatedProfile = {
-        ...userProfile,
-        savings: userProfile.savings - remainingAmount,
-        monthlyInvestmentCapacity:
-          userProfile.monthlyInvestmentCapacity -
-          Math.abs(remainingAmount / 24),
-      };
-      localStorage.setItem(
-        "growvest_user_profile",
-        JSON.stringify(updatedProfile)
-      );
-
-      // Mark the original goal as completed (set currentAmount to targetAmount)
-      await updateGoal({
+      // Update the goal with financing
+      const updatedGoal = await updateGoal({
         id: goalId,
         currentAmount: originalGoal.targetAmount,
         progress: 100,
+        monthlyLoanPayment: monthlyLoanPayment,
       });
 
-      // Show success message
-      toast({
-        title: "Financing Applied",
-        description: `Your goal "${goalTitle}" has been financed and a new loan goal has been created.`,
-      });
+      if (updatedGoal) {
+        // Update local state
+        setFilteredGoals((prevGoals) =>
+          prevGoals.map((goal) => (goal.id === goalId ? updatedGoal : goal))
+        );
 
-      // Refresh the page to show the updated goals
-      window.location.reload();
+        toast({
+          title: "Goal Financed Successfully",
+          description: `Your goal has been financed with a monthly payment of ₹${monthlyLoanPayment.toFixed(
+            2
+          )}.`,
+        });
+      }
     } catch (error) {
       console.error("Error financing goal:", error);
       toast({
