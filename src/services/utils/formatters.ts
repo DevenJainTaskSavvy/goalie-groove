@@ -29,3 +29,12 @@ export const parseCurrency = (currencyString: string): number => {
   
   return parseFloat(numStr);
 };
+
+// Format date for display
+export const formatDate = (date: Date): string => {
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+};

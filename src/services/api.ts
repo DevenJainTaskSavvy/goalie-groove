@@ -1,7 +1,8 @@
+
 // Re-export all service functions from their respective files
 
 // Export formatters
-export { formatCurrency, parseCurrency } from "./utils/formatters";
+export { formatCurrency, parseCurrency, formatDate } from "./utils/formatters";
 
 // Export financial calculations
 export { calculateMonthlyContribution } from "./utils/financialCalculations";
@@ -17,3 +18,4 @@ export {
   deleteGoal,
   getRemainingMonthlyCapacity,
 } from "./goalService";
+
