@@ -9,6 +9,7 @@ import {
 } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Goal } from "@/types/finance";
+import { RefreshCw } from "lucide-react";
 
 // Import our new components
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -16,6 +17,15 @@ import DashboardLoading from "@/components/dashboard/DashboardLoading";
 import FinancialOverviewCards from "@/components/dashboard/FinancialOverviewCards";
 import MonthlyGoalAllocations from "@/components/dashboard/MonthlyGoalAllocations";
 import GoalList from "@/components/dashboard/GoalList";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -25,6 +35,7 @@ const Dashboard = () => {
   const [monthlyCapacity, setMonthlyCapacity] = useState(0);
   const [monthlySpent, setMonthlySpent] = useState(0);
   const [totalCurrentAmount, setTotalCurrentAmount] = useState(0);
+  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -129,6 +140,19 @@ const Dashboard = () => {
     updateGoalAllocationData(updatedGoals);
   };
 
+  const handleSyncSpending = () => {
+    setSyncDialogOpen(true);
+  };
+
+  const handleSyncConfirm = () => {
+    // This is where you would handle the spending sync logic
+    toast({
+      title: "Spending Habits",
+      description: "Spending habits can be improved! You will now be tracked for your spending habits",
+    });
+    setSyncDialogOpen(false);
+  };
+
   if (loading) {
     return <DashboardLoading />;
   }
@@ -138,7 +162,37 @@ const Dashboard = () => {
       <Header />
 
       <main className="container pt-24 px-4 mx-auto">
-        <DashboardHeader userName={userName} />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+          <DashboardHeader userName={userName} />
+          
+          <Button 
+            className="mt-4 sm:mt-0 flex items-center gap-2"
+            onClick={handleSyncSpending}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Sync Your Spending
+          </Button>
+        </div>
+
+        {/* Sync Spending Dialog */}
+        <Dialog open={syncDialogOpen} onOpenChange={setSyncDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Spending Sync</DialogTitle>
+              <DialogDescription>
+                Check your habits to know how you can spend better?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-row justify-end gap-2 sm:gap-0">
+              <Button variant="outline" onClick={() => setSyncDialogOpen(false)}>
+                No
+              </Button>
+              <Button onClick={handleSyncConfirm}>
+                Yes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Financial Overview Cards */}
         <FinancialOverviewCards
