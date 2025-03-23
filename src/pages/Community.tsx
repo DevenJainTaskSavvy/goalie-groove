@@ -9,12 +9,20 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import GlassCard from '@/components/ui/GlassCard';
-import { InvestmentCircle } from '@/types/community';
+import { InvestmentCircle, CircleMember } from '@/types/community';
 import { Plus, DollarSign, Users, Calendar, Heart, ChevronRight, PlusCircle, UserPlus } from 'lucide-react';
 import Header from '@/components/layout/Header';
+import { useToast } from '@/components/ui/use-toast';
+
+// Import the new components
+import MembersList from '@/components/community/MembersList';
+import CircleChat from '@/components/community/CircleChat';
+import ActivityFeed from '@/components/community/ActivityFeed';
+import InviteMemberDialog from '@/components/community/InviteMemberDialog';
 
 const Community = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [activeCircle, setActiveCircle] = useState<InvestmentCircle | null>(null);
   const [showNewCircleForm, setShowNewCircleForm] = useState(false);
   const [newCircleName, setNewCircleName] = useState('');
@@ -22,6 +30,7 @@ const Community = () => {
   const [newCircleAmount, setNewCircleAmount] = useState('');
   const [newCircleDate, setNewCircleDate] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   // Sample data for investment circles
   const [circles, setCircles] = useState<InvestmentCircle[]>([
@@ -102,6 +111,14 @@ const Community = () => {
       setNewCircleDescription('');
       setNewCircleAmount('');
       setNewCircleDate('');
+      
+      // Set the newly created circle as active
+      setActiveCircle(newCircle);
+      
+      toast({
+        title: "Circle Created",
+        description: `Your new investment circle "${newCircle.name}" has been created successfully.`,
+      });
     }
   };
 
@@ -135,6 +152,23 @@ const Community = () => {
       if (updatedActiveCircle) {
         setActiveCircle(updatedActiveCircle);
       }
+      
+      toast({
+        title: "Contribution Added",
+        description: "Your contribution of $500 has been added successfully.",
+      });
+    }
+  };
+
+  const handleInviteMember = (email: string) => {
+    if (activeCircle) {
+      // In a real app, this would send an invitation
+      console.log(`Inviting ${email} to join ${activeCircle.name}`);
+      
+      toast({
+        title: "Invitation Sent",
+        description: `An invitation has been sent to ${email}`,
+      });
     }
   };
 
@@ -381,58 +415,32 @@ const Community = () => {
                   </TabsContent>
                   
                   <TabsContent value="members">
-                    <h3 className="text-lg font-semibold mb-4">Circle Members</h3>
-                    
-                    <div className="space-y-4">
-                      {activeCircle.members.map((member) => (
-                        <Card key={member.id}>
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center">
-                                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                                  {member.name.charAt(0)}
-                                </div>
-                                <div>
-                                  <h4 className="font-medium">{member.name}</h4>
-                                  <p className="text-xs text-muted-foreground">Joined {member.joinedAt.toLocaleDateString()}</p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-medium">{formatCurrency(member.contribution)}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {Math.round((member.contribution / activeCircle.currentAmount) * 100) || 0}% of total
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    
-                    <div className="mt-6">
-                      <Button variant="outline" className="w-full">
-                        <UserPlus className="mr-2 h-4 w-4" />
-                        Invite New Member
-                      </Button>
-                    </div>
+                    <MembersList 
+                      members={activeCircle.members} 
+                      onInviteMember={() => setInviteDialogOpen(true)}
+                      circleAdmin={activeCircle.createdBy}
+                    />
                   </TabsContent>
                   
                   <TabsContent value="chat">
-                    <div className="text-center py-8">
-                      <h3 className="text-lg font-semibold mb-2">Circle Chat</h3>
-                      <p className="text-muted-foreground">Chat with circle members about your investment plans</p>
-                      <Button className="mt-4">Start Conversation</Button>
-                    </div>
+                    <CircleChat
+                      members={activeCircle.members}
+                      circleName={activeCircle.name}
+                    />
                   </TabsContent>
                   
                   <TabsContent value="activity">
-                    <div className="text-center py-8">
-                      <h3 className="text-lg font-semibold mb-2">Activity Feed</h3>
-                      <p className="text-muted-foreground">Track all contributions and updates to your circle</p>
-                      <Button className="mt-4">View All Activity</Button>
-                    </div>
+                    <ActivityFeed circle={activeCircle} />
                   </TabsContent>
                 </Tabs>
+                
+                {/* Invite Member Dialog */}
+                <InviteMemberDialog
+                  open={inviteDialogOpen}
+                  onOpenChange={setInviteDialogOpen}
+                  circleName={activeCircle.name}
+                  onInvite={handleInviteMember}
+                />
               </GlassCard>
             ) : (
               <GlassCard className="p-6 flex flex-col items-center justify-center min-h-[600px]">
